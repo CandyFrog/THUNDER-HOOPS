@@ -1,11 +1,11 @@
 <?php
 // admin/dashboard.php
-session_start();
+require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
 // Check if admin
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../auth/login.php");
+if($_SESSION['role'] != 'admin') {
+    header("Location: ../auth/login.php"); // Or unauthorized page? Login is fine.
     exit();
 }
 

@@ -1,13 +1,9 @@
 <?php
 // user/dashboard.php
-session_start();
+require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-// Check if user
-if(!isset($_SESSION['user_id'])) {
-    header("Location: ../auth/login.php");
-    exit();
-}
+
 
 $page_title = "User Dashboard - Basketball Arcade";
 
