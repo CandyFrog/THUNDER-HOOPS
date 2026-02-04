@@ -1,7 +1,7 @@
 # Basketball Arcade API Documentation
 
 ## Endpoint
-**URL:** `https://your-server-domain/api/match.php`
+**URL:** `http://your-server-ip/basketball_arcade/api.php`
 **Method:** POST
 **Content-Type:** application/json
 
@@ -49,7 +49,7 @@
 
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
-const char* serverUrl = "https://your-server-domain/api/match.php";
+const char* serverUrl = "http://192.168.1.100/basketball_arcade/api.php";
 
 void sendGameData(int p1Score, int p2Score, int duration) {
   if(WiFi.status() == WL_CONNECTED) {

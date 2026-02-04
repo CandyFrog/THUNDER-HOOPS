@@ -19,7 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?php echo $current_page == 'games.php' ? 'active' : ''; ?>" href="games.php">
+                    <a class="nav-link <?php echo $current_page == 'riwayat.php' ? 'active' : ''; ?>" href="riwayat.php">
                         <i class="bi bi-controller"></i> Games
                     </a>
                 </li>
