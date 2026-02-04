@@ -244,6 +244,7 @@ if(isset($_SESSION['user_success'])) {
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Foto</th>
                             <th>Username</th>
                             <th>Full Name</th>
                             <th>Role</th>
@@ -257,7 +258,12 @@ if(isset($_SESSION['user_success'])) {
                             <tr>
                                 <td><strong>#<?php echo $user['id']; ?></strong></td>
                                 <td>
-                                    <i class="bi bi-person-circle" style="color: var(--primary-peach);"></i>
+                                    <?php 
+                                    $foto = !empty($user['foto_profil']) ? '../assets/foto_profil/' . $user['foto_profil'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name']) . '&background=E8A796&color=fff';
+                                    ?>
+                                    <img src="<?php echo $foto; ?>" alt="Foto" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid white;">
+                                </td>
+                                <td>
                                     <strong><?php echo htmlspecialchars($user['username']); ?></strong>
                                 </td>
                                 <td><?php echo htmlspecialchars($user['full_name']); ?></td>
