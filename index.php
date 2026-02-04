@@ -38,10 +38,10 @@ if(isset($_SESSION['user_id'])) {
                             Sistem IoT untuk mengelola permainan basketball arcade dengan monitoring real-time dan statistik lengkap.
                         </p>
                         <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
-                            <a href="login.php" class="btn btn-peach btn-lg">
+                            <a href="auth/login.php" class="btn btn-peach btn-lg">
                                 <i class="bi bi-box-arrow-in-right"></i> Login
                             </a>
-                            <a href="register.php" class="btn btn-outline-peach btn-lg">
+                            <a href="auth/register.php" class="btn btn-outline-peach btn-lg">
                                 <i class="bi bi-person-plus"></i> Register
                             </a>
                         </div>

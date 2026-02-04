@@ -1,7 +1,7 @@
 <?php
 // api.php - API untuk menerima data dari Arduino
 header('Content-Type: application/json');
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Fungsi untuk send response
 function sendResponse($success, $message, $data = null) {
@@ -58,21 +58,13 @@ if($player1_score > $player2_score) {
 }
 
 // Simpan ke database
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-    
     $query = "INSERT INTO games (player1_score, player2_score, winner, game_duration, notes) 
-              VALUES (:p1, :p2, :winner, :duration, :notes)";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':p1', $player1_score);
-    $stmt->bindParam(':p2', $player2_score);
-    $stmt->bindParam(':winner', $winner);
-    $stmt->bindParam(':duration', $game_duration);
-    $stmt->bindParam(':notes', $notes);
+              VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iisss", $player1_score, $player2_score, $winner, $game_duration, $notes);
     
     if($stmt->execute()) {
-        $game_id = $db->lastInsertId();
+        $game_id = $conn->insert_id;
         sendResponse(true, 'Game data saved successfully', [
             'game_id' => $game_id,
             'player1_score' => $player1_score,
@@ -83,7 +75,4 @@ try {
     } else {
         sendResponse(false, 'Failed to save game data');
     }
-} catch(PDOException $e) {
-    sendResponse(false, 'Database error: ' . $e->getMessage());
-}
 ?>

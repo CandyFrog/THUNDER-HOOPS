@@ -5,14 +5,13 @@ require_once '../config/database.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "Manage Users - Basketball Arcade";
 
-$database = new Database();
-$db = $database->getConnection();
+// Connection already included
 
 $success = '';
 $error = '';
@@ -33,22 +32,20 @@ if(isset($_POST['add_user'])) {
         $error = 'Password minimal 6 karakter!';
     } else {
         // Cek username sudah ada atau belum
-        $query = "SELECT id FROM users WHERE username = :username";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
+        $query = "SELECT id FROM users WHERE username = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
+        if($result->num_rows > 0) {
             $error = 'Username sudah digunakan!';
         } else {
             // Insert user baru
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $query = "INSERT INTO users (username, password, full_name, role) VALUES (:username, :password, :full_name, :role)";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $hashed_password);
-            $stmt->bindParam(':full_name', $full_name);
-            $stmt->bindParam(':role', $role);
+            $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ssss", $username, $hashed_password, $full_name, $role);
             
             if($stmt->execute()) {
                 $success = 'User berhasil ditambahkan!';
@@ -72,32 +69,28 @@ if(isset($_POST['edit_user'])) {
         $error = 'Username dan nama lengkap harus diisi!';
     } else {
         // Cek username conflict (kecuali untuk user yang sama)
-        $query = "SELECT id FROM users WHERE username = :username AND id != :user_id";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':user_id', $user_id);
+        $query = "SELECT id FROM users WHERE username = ? AND id != ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("si", $username, $user_id);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
+        if($result->num_rows > 0) {
             $error = 'Username sudah digunakan oleh user lain!';
         } else {
             // Update user
             if(!empty($password)) {
                 // Update dengan password baru
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $query = "UPDATE users SET username = :username, password = :password, full_name = :full_name, role = :role WHERE id = :id";
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':password', $hashed_password);
+                $query = "UPDATE users SET username = ?, password = ?, full_name = ?, role = ? WHERE id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ssssi", $username, $hashed_password, $full_name, $role, $user_id);
             } else {
                 // Update tanpa password
-                $query = "UPDATE users SET username = :username, full_name = :full_name, role = :role WHERE id = :id";
-                $stmt = $db->prepare($query);
+                $query = "UPDATE users SET username = ?, full_name = ?, role = ? WHERE id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("sssi", $username, $full_name, $role, $user_id);
             }
-            
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':full_name', $full_name);
-            $stmt->bindParam(':role', $role);
-            $stmt->bindParam(':id', $user_id);
             
             if($stmt->execute()) {
                 $success = 'User berhasil diupdate!';
@@ -116,29 +109,40 @@ $offset = ($page - 1) * $limit;
 // Search functionality
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $where_clause = '';
+$params = [];
+$types = '';
+
 if(!empty($search)) {
-    $where_clause = "WHERE username LIKE :search OR full_name LIKE :search OR role LIKE :search";
+    $where_clause = "WHERE username LIKE ? OR full_name LIKE ? OR role LIKE ?";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= 'sss';
 }
 
 $query = "SELECT COUNT(*) as total FROM users $where_clause";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $search_param = "%$search%";
-    $stmt->bindParam(':search', $search_param);
+$stmt = $conn->prepare($query);
+if(!empty($params)) {
+    $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
-$total_records = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $stmt->get_result();
+$total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM users $where_clause ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $stmt->bindParam(':search', $search_param);
-}
-$stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+$query = "SELECT * FROM users $where_clause ORDER BY created_at DESC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($query);
+
+// Append limit and offset to params
+$params[] = $limit;
+$params[] = $offset;
+$types .= 'ii';
+
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $stmt->get_result();
+$users = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';

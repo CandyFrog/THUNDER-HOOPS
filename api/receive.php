@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config/koneksi.php';
+require_once __DIR__ . '/../config/koneksi.php';
 
 $skor_kiri  = $_GET['skor_kiri'] ?? 0;
 $skor_kanan = $_GET['skor_kanan'] ?? 0;

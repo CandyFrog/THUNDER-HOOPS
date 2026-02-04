@@ -5,14 +5,13 @@ require_once '../config/database.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "Manage Games - Basketball Arcade";
 
-$database = new Database();
-$db = $database->getConnection();
+// Connection already included
 
 $success = '';
 $error = '';
@@ -34,13 +33,9 @@ if(isset($_POST['add_game'])) {
     }
     
     $query = "INSERT INTO games (player1_score, player2_score, winner, game_duration, notes) 
-              VALUES (:p1, :p2, :winner, :duration, :notes)";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':p1', $player1_score);
-    $stmt->bindParam(':p2', $player2_score);
-    $stmt->bindParam(':winner', $winner);
-    $stmt->bindParam(':duration', $game_duration);
-    $stmt->bindParam(':notes', $notes);
+              VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iisss", $player1_score, $player2_score, $winner, $game_duration, $notes);
     
     if($stmt->execute()) {
         $success = 'Game berhasil ditambahkan!';
@@ -66,15 +61,10 @@ if(isset($_POST['edit_game'])) {
         $winner = 'Draw';
     }
     
-    $query = "UPDATE games SET player1_score = :p1, player2_score = :p2, winner = :winner, 
-              game_duration = :duration, notes = :notes WHERE id = :id";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':p1', $player1_score);
-    $stmt->bindParam(':p2', $player2_score);
-    $stmt->bindParam(':winner', $winner);
-    $stmt->bindParam(':duration', $game_duration);
-    $stmt->bindParam(':notes', $notes);
-    $stmt->bindParam(':id', $game_id);
+    $query = "UPDATE games SET player1_score = ?, player2_score = ?, winner = ?, 
+              game_duration = ?, notes = ? WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iisssi", $player1_score, $player2_score, $winner, $game_duration, $notes, $game_id);
     
     if($stmt->execute()) {
         $success = 'Game berhasil diupdate!';
@@ -91,29 +81,39 @@ $offset = ($page - 1) * $limit;
 // Search functionality
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $where_clause = '';
+$params = [];
+$types = '';
+
 if(!empty($search)) {
-    $where_clause = "WHERE id LIKE :search OR winner LIKE :search";
+    $where_clause = "WHERE id LIKE ? OR winner LIKE ?";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= 'ss';
 }
 
 $query = "SELECT COUNT(*) as total FROM games $where_clause";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $search_param = "%$search%";
-    $stmt->bindParam(':search', $search_param);
+$stmt = $conn->prepare($query);
+if(!empty($params)) {
+    $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
-$total_records = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $stmt->get_result();
+$total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM games $where_clause ORDER BY played_at DESC LIMIT :limit OFFSET :offset";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $stmt->bindParam(':search', $search_param);
-}
-$stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+$query = "SELECT * FROM games $where_clause ORDER BY played_at DESC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($query);
+
+// Append limit and offset to params
+$params[] = $limit;
+$params[] = $offset;
+$types .= 'ii';
+
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
-$games = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $stmt->get_result();
+$games = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';

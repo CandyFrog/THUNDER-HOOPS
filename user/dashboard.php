@@ -5,35 +5,30 @@ require_once '../config/database.php';
 
 // Check if user
 if(!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "User Dashboard - Basketball Arcade";
 
-$database = new Database();
-$db = $database->getConnection();
+// Database connection is already established in config/koneksi.php
 
 // Get statistics
 $query = "SELECT COUNT(*) as total FROM games";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_games = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_games = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 1'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$player1_wins = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$player1_wins = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 2'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$player2_wins = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$player2_wins = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Draw'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_draws = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_draws = $result->fetch_assoc()['total'];
 
 // Get all games with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -41,17 +36,16 @@ $limit = 10;
 $offset = ($page - 1) * $limit;
 
 $query = "SELECT COUNT(*) as total FROM games";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_records = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM games ORDER BY played_at DESC LIMIT :limit OFFSET :offset";
-$stmt = $db->prepare($query);
-$stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+$query = "SELECT * FROM games ORDER BY played_at DESC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
-$games = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $stmt->get_result();
+$games = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';

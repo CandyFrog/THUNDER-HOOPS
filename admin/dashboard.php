@@ -5,46 +5,40 @@ require_once '../config/database.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "Admin Dashboard - Basketball Arcade";
 
-$database = new Database();
-$db = $database->getConnection();
+// Connection is already established in config/koneksi.php
 
 // Get statistics
+// Get statistics
 $query = "SELECT COUNT(*) as total FROM games";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_games = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_games = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_users = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_users = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 1'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$player1_wins = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$player1_wins = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 2'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$player2_wins = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$player2_wins = $result->fetch_assoc()['total'];
 
 $query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Draw'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$total_draws = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $conn->query($query);
+$total_draws = $result->fetch_assoc()['total'];
 
 // Get recent games
 $query = "SELECT * FROM games ORDER BY played_at DESC LIMIT 5";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$recent_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $conn->query($query);
+$recent_games = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';

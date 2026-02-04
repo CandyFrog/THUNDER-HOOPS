@@ -1,14 +1,14 @@
 <?php
 // login.php
 session_start();
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
     if($_SESSION['role'] == 'admin') {
-        header("Location: admin/dashboard.php");
+        header("Location: ../admin/dashboard.php");
     } else {
-        header("Location: user/dashboard.php");
+        header("Location: ../user/dashboard.php");
     }
     exit();
 }
@@ -22,16 +22,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     if(empty($username) || empty($password)) {
         $error = 'Username dan password harus diisi!';
     } else {
-        $database = new Database();
-        $db = $database->getConnection();
-        
-        $query = "SELECT * FROM users WHERE username = :username LIMIT 1";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
+        // Prepare statement
+        $query = "SELECT * FROM users WHERE username = ? LIMIT 1";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
             
             if(password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
@@ -40,9 +39,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['role'] = $user['role'];
                 
                 if($user['role'] == 'admin') {
-                    header("Location: admin/dashboard.php");
+                    header("Location: ../admin/dashboard.php");
                 } else {
-                    header("Location: user/dashboard.php");
+                    header("Location: ../user/dashboard.php");
                 }
                 exit();
             } else {
@@ -63,7 +62,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Login - Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="auth-container">

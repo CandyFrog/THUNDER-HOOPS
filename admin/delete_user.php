@@ -5,7 +5,7 @@ require_once '../config/database.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
@@ -19,12 +19,9 @@ if(isset($_GET['id'])) {
         exit();
     }
     
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    $query = "DELETE FROM users WHERE id = :id";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':id', $user_id);
+    $query = "DELETE FROM users WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
     
     if($stmt->execute()) {
         $_SESSION['delete_success'] = 'User berhasil dihapus!';
