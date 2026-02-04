@@ -1,7 +1,7 @@
 <?php
 // admin/games.php
 session_start();
-require_once '../config/database.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
@@ -18,56 +18,56 @@ $error = '';
 
 // Handle Add Game
 if(isset($_POST['add_game'])) {
-    $player1_score = (int)$_POST['player1_score'];
-    $player2_score = (int)$_POST['player2_score'];
-    $game_duration = (int)$_POST['game_duration'];
-    $notes = trim($_POST['notes']);
+    // Get form data
+    $skor_kiri = (int)$_POST['skor_kiri'];
+    $skor_kanan = (int)$_POST['skor_kanan'];
+    $durasi = (int)$_POST['durasi'];
+    $pemenang = '';
     
-    // Determine winner
-    if($player1_score > $player2_score) {
-        $winner = 'Player 1';
-    } elseif($player2_score > $player1_score) {
-        $winner = 'Player 2';
+    if($skor_kiri > $skor_kanan) {
+        $pemenang = 'Kiri';
+    } elseif($skor_kanan > $skor_kiri) {
+        $pemenang = 'Kanan';
     } else {
-        $winner = 'Draw';
+        $pemenang = 'Seri';
     }
     
-    $query = "INSERT INTO games (player1_score, player2_score, winner, game_duration, notes) 
-              VALUES (?, ?, ?, ?, ?)";
+    $query = "INSERT INTO match_data (skor_kiri, skor_kanan, durasi, pemenang) 
+              VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iisss", $player1_score, $player2_score, $winner, $game_duration, $notes);
+    $stmt->bind_param("iiis", $skor_kiri, $skor_kanan, $durasi, $pemenang);
     
     if($stmt->execute()) {
-        $success = 'Game berhasil ditambahkan!';
+        $success = 'Data pertandingan berhasil ditambahkan!';
     } else {
-        $error = 'Gagal menambahkan game!';
+        $error = 'Gagal menambahkan data pertandingan!';
     }
 }
 
 // Handle Edit Game
 if(isset($_POST['edit_game'])) {
-    $game_id = (int)$_POST['game_id'];
-    $player1_score = (int)$_POST['player1_score'];
-    $player2_score = (int)$_POST['player2_score'];
-    $game_duration = (int)$_POST['game_duration'];
-    $notes = trim($_POST['notes']);
+    // Get form data
+    $game_id = (int)$_POST['id'];
+    $skor_kiri = (int)$_POST['skor_kiri'];
+    $skor_kanan = (int)$_POST['skor_kanan'];
+    $durasi = (int)$_POST['durasi'];
+    $pemenang = '';
     
-    // Determine winner
-    if($player1_score > $player2_score) {
-        $winner = 'Player 1';
-    } elseif($player2_score > $player1_score) {
-        $winner = 'Player 2';
+    if($skor_kiri > $skor_kanan) {
+        $pemenang = 'Kiri';
+    } elseif($skor_kanan > $skor_kiri) {
+        $pemenang = 'Kanan';
     } else {
-        $winner = 'Draw';
+        $pemenang = 'Seri';
     }
     
-    $query = "UPDATE games SET player1_score = ?, player2_score = ?, winner = ?, 
-              game_duration = ?, notes = ? WHERE id = ?";
+    $query = "UPDATE match_data SET skor_kiri = ?, skor_kanan = ?, pemenang = ?, 
+              durasi = ? WHERE id = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iisssi", $player1_score, $player2_score, $winner, $game_duration, $notes, $game_id);
+    $stmt->bind_param("iiisi", $skor_kiri, $skor_kanan, $pemenang, $durasi, $game_id);
     
     if($stmt->execute()) {
-        $success = 'Game berhasil diupdate!';
+        $success = 'Data pertandingan berhasil diupdate!';
     } else {
         $error = 'Gagal mengupdate game!';
     }
@@ -85,14 +85,14 @@ $params = [];
 $types = '';
 
 if(!empty($search)) {
-    $where_clause = "WHERE id LIKE ? OR winner LIKE ?";
+    $where_clause = "WHERE id LIKE ? OR pemenang LIKE ?";
     $search_param = "%$search%";
     $params[] = $search_param;
     $params[] = $search_param;
     $types .= 'ss';
 }
 
-$query = "SELECT COUNT(*) as total FROM games $where_clause";
+$query = "SELECT COUNT(*) as total FROM match_data $where_clause";
 $stmt = $conn->prepare($query);
 if(!empty($params)) {
     $stmt->bind_param($types, ...$params);
@@ -102,7 +102,7 @@ $result = $stmt->get_result();
 $total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM games $where_clause ORDER BY played_at DESC LIMIT ? OFFSET ?";
+$query = "SELECT * FROM match_data $where_clause ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 
 // Append limit and offset to params
@@ -171,50 +171,77 @@ include '../includes/navbar.php';
                 <table class="table table-custom mb-0">
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>ID</th>
-                            <th>Player 1 Score</th>
-                            <th>Player 2 Score</th>
-                            <th>Winner</th>
-                            <th>Duration</th>
-                            <th>Played At</th>
-                            <th>Actions</th>
+                            <th>Skor Kiri</th>
+                            <th>Skor Kanan</th>
+                            <th>Pemenang</th>
+                            <th>Durasi</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if(count($games) > 0): ?>
-                            <?php foreach($games as $game): ?>
+                            <?php $no = $offset + 1; foreach($games as $game): ?>
                             <tr>
-                                <td><strong>#<?php echo $game['id']; ?></strong></td>
+                                <td><?php echo $no++; ?></td>
+                                <td>#<?php echo $game['id']; ?></td>
+                                <td><?php echo $game['skor_kiri']; ?></td>
+                                <td><?php echo $game['skor_kanan']; ?></td>
                                 <td>
-                                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--primary-peach);">
-                                        <?php echo $game['player1_score']; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--primary-peach);">
-                                        <?php echo $game['player2_score']; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php if($game['winner'] == 'Draw'): ?>
-                                        <span class="badge-draw"><i class="bi bi-dash-circle"></i> Draw</span>
+                                    <?php if($game['pemenang'] == 'Seri'): ?>
+                                        <span class="badge bg-secondary">Seri</span>
                                     <?php else: ?>
-                                        <span class="badge-winner"><i class="bi bi-trophy"></i> <?php echo $game['winner']; ?></span>
+                                        <span class="badge bg-success"><?php echo $game['pemenang']; ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo $game['game_duration']; ?>s</td>
-                                <td><?php echo date('d M Y, H:i', strtotime($game['played_at'])); ?></td>
+                                <td><?php echo $game['durasi']; ?>s</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-peach me-1" 
-                                            onclick="editGame(<?php echo htmlspecialchars(json_encode($game)); ?>)">
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editGameModal<?php echo $game['id']; ?>">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" 
-                                            onclick="deleteGame(<?php echo $game['id']; ?>)">
+                                    <a href="delete_game.php?id=<?php echo $game['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus data ini?')">
                                         <i class="bi bi-trash"></i>
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
+
+                            <!-- Edit Game Modal -->
+                            <div class="modal fade" id="editGameModal<?php echo $game['id']; ?>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Data Pertandingan</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST">
+                                            <div class="modal-body">
+                                                <input type="hidden" name="edit_game" value="1">
+                                                <input type="hidden" name="id" value="<?php echo $game['id']; ?>">
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Skor Kiri</label>
+                                                    <input type="number" class="form-control" name="skor_kiri" value="<?php echo $game['skor_kiri']; ?>" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Skor Kanan</label>
+                                                    <input type="number" class="form-control" name="skor_kanan" value="<?php echo $game['skor_kanan']; ?>" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Durasi (detik)</label>
+                                                    <input type="number" class="form-control" name="durasi" value="<?php echo $game['durasi']; ?>" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
@@ -286,28 +313,26 @@ include '../includes/navbar.php';
             </div>
             <form method="POST" action="">
                 <div class="modal-body">
+                    <input type="hidden" name="add_game" value="1">
+                
                     <div class="mb-3">
-                        <label class="form-label">Player 1 Score</label>
-                        <input type="number" class="form-control form-control-custom" name="player1_score" required min="0">
+                        <label class="form-label">Skor Kiri</label>
+                        <input type="number" class="form-control" name="skor_kiri" required>
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Player 2 Score</label>
-                        <input type="number" class="form-control form-control-custom" name="player2_score" required min="0">
+                        <label class="form-label">Skor Kanan</label>
+                        <input type="number" class="form-control" name="skor_kanan" required>
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Game Duration (seconds)</label>
-                        <input type="number" class="form-control form-control-custom" name="game_duration" required min="1" value="120">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control form-control-custom" name="notes" rows="3"></textarea>
+                        <label class="form-label">Durasi (detik)</label>
+                        <input type="number" class="form-control" name="durasi" required>
                     </div>
                 </div>
                 <div class="modal-footer" style="border: none;">
-                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="add_game" class="btn btn-peach">
-                        <i class="bi bi-save"></i> Save Game
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
         </div>

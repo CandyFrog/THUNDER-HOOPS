@@ -14,33 +14,33 @@ $page_title = "User Dashboard - Basketball Arcade";
 // Database connection is already established in config/koneksi.php
 
 // Get statistics
-$query = "SELECT COUNT(*) as total FROM games";
+$query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
 
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 1'";
+// Statistik Pemenang (Asumsi data dari receive.php)
+$query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
-$player1_wins = $result->fetch_assoc()['total'];
+$wins = [];
+while($row = $result->fetch_assoc()) {
+    $wins[$row['pemenang']] = $row['total'];
+}
 
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 2'";
-$result = $conn->query($query);
-$player2_wins = $result->fetch_assoc()['total'];
-
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Draw'";
-$result = $conn->query($query);
-$total_draws = $result->fetch_assoc()['total'];
+$player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kiri']) ? $wins['Kiri'] : 0);
+$player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
+$total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
 
 // Get all games with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-$query = "SELECT COUNT(*) as total FROM games";
+$query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM games ORDER BY played_at DESC LIMIT ? OFFSET ?";
+$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
@@ -96,11 +96,11 @@ include '../includes/navbar.php';
                     <thead>
                         <tr>
                             <th>Game ID</th>
-                            <th>Player 1</th>
-                            <th>Player 2</th>
-                            <th>Winner</th>
-                            <th>Duration</th>
-                            <th>Date</th>
+                            <th>Skor Kiri</th>
+                            <th>Skor Kanan</th>
+                            <th>Pemenang</th>
+                            <th>Durasi</th>
+                            <th>Waktu</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,23 +110,23 @@ include '../includes/navbar.php';
                                 <td><strong>#<?php echo $game['id']; ?></strong></td>
                                 <td>
                                     <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-peach);">
-                                        <?php echo $game['player1_score']; ?>
+                                        <?php echo $game['skor_kiri']; ?>
                                     </span>
                                 </td>
                                 <td>
                                     <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-peach);">
-                                        <?php echo $game['player2_score']; ?>
+                                        <?php echo $game['skor_kanan']; ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if($game['winner'] == 'Draw'): ?>
-                                        <span class="badge-draw">Draw</span>
+                                    <?php if($game['pemenang'] == 'Draw' || $game['pemenang'] == 'Seri'): ?>
+                                        <span class="badge-draw">Seri</span>
                                     <?php else: ?>
-                                        <span class="badge-winner"><?php echo $game['winner']; ?></span>
+                                        <span class="badge-winner"><?php echo $game['pemenang']; ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo $game['game_duration']; ?> detik</td>
-                                <td><?php echo date('d M Y, H:i', strtotime($game['played_at'])); ?></td>
+                                <td><?php echo $game['durasi']; ?> detik</td>
+                                <td>-</td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

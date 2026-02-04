@@ -1,7 +1,7 @@
 <?php
 // admin/delete_user.php
 session_start();
-require_once '../config/database.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {

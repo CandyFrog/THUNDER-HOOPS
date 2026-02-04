@@ -1,7 +1,7 @@
 <?php
 // admin/dashboard.php
 session_start();
-require_once '../config/database.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
@@ -14,8 +14,7 @@ $page_title = "Admin Dashboard - Basketball Arcade";
 // Connection is already established in config/koneksi.php
 
 // Get statistics
-// Get statistics
-$query = "SELECT COUNT(*) as total FROM games";
+$query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
 
@@ -23,20 +22,23 @@ $query = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
 $result = $conn->query($query);
 $total_users = $result->fetch_assoc()['total'];
 
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 1'";
+// Statistik Pemenang (Asumsi data dari receive.php)
+// Kita hitung jumlah kemenangan masing-masing
+$query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
-$player1_wins = $result->fetch_assoc()['total'];
+$wins = [];
+while($row = $result->fetch_assoc()) {
+    $wins[$row['pemenang']] = $row['total'];
+}
 
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Player 2'";
-$result = $conn->query($query);
-$player2_wins = $result->fetch_assoc()['total'];
-
-$query = "SELECT COUNT(*) as total FROM games WHERE winner = 'Draw'";
-$result = $conn->query($query);
-$total_draws = $result->fetch_assoc()['total'];
+// Mapping pemenang (sesuaikan dengan data yang dikirim receive.php)
+// Jika receive.php mengirim 'Kiri'/'Kanan' atau 'Player 1'/'Player 2'
+$player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kiri']) ? $wins['Kiri'] : 0);
+$player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
+$total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
 
 // Get recent games
-$query = "SELECT * FROM games ORDER BY played_at DESC LIMIT 5";
+$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
 $result = $conn->query($query);
 $recent_games = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -89,11 +91,11 @@ include '../includes/navbar.php';
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Player 1 Score</th>
-                            <th>Player 2 Score</th>
-                            <th>Winner</th>
-                            <th>Duration</th>
-                            <th>Played At</th>
+                            <th>Skor Kiri</th>
+                            <th>Skor Kanan</th>
+                            <th>Pemenang</th>
+                            <th>Durasi</th>
+                            <th>Waktu</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,17 +103,17 @@ include '../includes/navbar.php';
                             <?php foreach($recent_games as $game): ?>
                             <tr>
                                 <td>#<?php echo $game['id']; ?></td>
-                                <td><strong><?php echo $game['player1_score']; ?></strong></td>
-                                <td><strong><?php echo $game['player2_score']; ?></strong></td>
+                                <td><strong><?php echo $game['skor_kiri']; ?></strong></td>
+                                <td><strong><?php echo $game['skor_kanan']; ?></strong></td>
                                 <td>
-                                    <?php if($game['winner'] == 'Draw'): ?>
-                                        <span class="badge-draw">Draw</span>
+                                    <?php if($game['pemenang'] == 'Draw' || $game['pemenang'] == 'Seri'): ?>
+                                        <span class="badge-draw">Seri</span>
                                     <?php else: ?>
-                                        <span class="badge-winner"><?php echo $game['winner']; ?></span>
+                                        <span class="badge-winner"><?php echo $game['pemenang']; ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo $game['game_duration']; ?>s</td>
-                                <td><?php echo date('d M Y, H:i', strtotime($game['played_at'])); ?></td>
+                                <td><?php echo $game['durasi']; ?>s</td>
+                                <td>-</td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

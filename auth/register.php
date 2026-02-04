@@ -1,7 +1,7 @@
 <?php
 // register.php
 session_start();
-require_once '../config/database.php';
+require_once '../config/koneksi.php';
 
 // Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
