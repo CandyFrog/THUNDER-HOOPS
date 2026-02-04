@@ -45,6 +45,11 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                         <i class="bi bi-people"></i> Users
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo $current_page == 'pengaturan.php' ? 'active' : ''; ?>" href="<?php echo $admin_path; ?>pengaturan.php">
+                        <i class="bi bi-gear"></i> Pengaturan
+                    </a>
+                </li>
                 <?php else: ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'dashboard.php' && $current_dir == 'user' ? 'active' : ''; ?>" href="<?php echo $user_path; ?>dashboard.php">
