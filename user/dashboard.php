@@ -1,7 +1,7 @@
 <?php
 // user/dashboard.php
 session_start();
-require_once '../config/database.php';
+require_once '../config/koneksi.php';
 
 // Check if user
 if(!isset($_SESSION['user_id'])) {
