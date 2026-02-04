@@ -13,65 +13,7 @@ $page_title = "Manage Games - Basketball Arcade";
 
 // Connection already included
 
-$success = '';
-$error = '';
 
-// Handle Add Game
-if(isset($_POST['add_game'])) {
-    // Get form data
-    $skor_kiri = (int)$_POST['skor_kiri'];
-    $skor_kanan = (int)$_POST['skor_kanan'];
-    $durasi = (int)$_POST['durasi'];
-    $pemenang = '';
-    
-    if($skor_kiri > $skor_kanan) {
-        $pemenang = 'Kiri';
-    } elseif($skor_kanan > $skor_kiri) {
-        $pemenang = 'Kanan';
-    } else {
-        $pemenang = 'Seri';
-    }
-    
-    $query = "INSERT INTO match_data (skor_kiri, skor_kanan, durasi, pemenang) 
-              VALUES (?, ?, ?, ?)";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("iiis", $skor_kiri, $skor_kanan, $durasi, $pemenang);
-    
-    if($stmt->execute()) {
-        $success = 'Data pertandingan berhasil ditambahkan!';
-    } else {
-        $error = 'Gagal menambahkan data pertandingan!';
-    }
-}
-
-// Handle Edit Game
-if(isset($_POST['edit_game'])) {
-    // Get form data
-    $game_id = (int)$_POST['id'];
-    $skor_kiri = (int)$_POST['skor_kiri'];
-    $skor_kanan = (int)$_POST['skor_kanan'];
-    $durasi = (int)$_POST['durasi'];
-    $pemenang = '';
-    
-    if($skor_kiri > $skor_kanan) {
-        $pemenang = 'Kiri';
-    } elseif($skor_kanan > $skor_kiri) {
-        $pemenang = 'Kanan';
-    } else {
-        $pemenang = 'Seri';
-    }
-    
-    $query = "UPDATE match_data SET skor_kiri = ?, skor_kanan = ?, pemenang = ?, 
-              durasi = ? WHERE id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("iiisi", $skor_kiri, $skor_kanan, $pemenang, $durasi, $game_id);
-    
-    if($stmt->execute()) {
-        $success = 'Data pertandingan berhasil diupdate!';
-    } else {
-        $error = 'Gagal mengupdate game!';
-    }
-}
 
 // Get all games with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -125,24 +67,7 @@ include '../includes/navbar.php';
             <h1 class="page-title">Manage Games</h1>
             <p class="page-subtitle">Kelola semua data permainan</p>
         </div>
-        <button class="btn btn-peach" data-bs-toggle="modal" data-bs-target="#addGameModal">
-            <i class="bi bi-plus-circle"></i> Add New Game
-        </button>
-    </div>
-    
-    <?php if($success): ?>
-    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> <?php echo $success; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
-    
-    <?php if($error): ?>
-    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> <?php echo $error; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
+
     
     <!-- Search and Filter -->
     <div class="card card-custom mb-4">
@@ -177,7 +102,7 @@ include '../includes/navbar.php';
                             <th>Skor Kanan</th>
                             <th>Pemenang</th>
                             <th>Durasi</th>
-                            <th>Aksi</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -196,56 +121,11 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?>s</td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editGameModal<?php echo $game['id']; ?>">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="delete_game.php?id=<?php echo $game['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
                             </tr>
-
-                            <!-- Edit Game Modal -->
-                            <div class="modal fade" id="editGameModal<?php echo $game['id']; ?>" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit Data Pertandingan</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form method="POST">
-                                            <div class="modal-body">
-                                                <input type="hidden" name="edit_game" value="1">
-                                                <input type="hidden" name="id" value="<?php echo $game['id']; ?>">
-                                                
-                                                <div class="mb-3">
-                                                    <label class="form-label">Skor Kiri</label>
-                                                    <input type="number" class="form-control" name="skor_kiri" value="<?php echo $game['skor_kiri']; ?>" required>
-                                                </div>
-                                                
-                                                <div class="mb-3">
-                                                    <label class="form-label">Skor Kanan</label>
-                                                    <input type="number" class="form-control" name="skor_kanan" value="<?php echo $game['skor_kanan']; ?>" required>
-                                                </div>
-                                                
-                                                <div class="mb-3">
-                                                    <label class="form-label">Durasi (detik)</label>
-                                                    <input type="number" class="form-control" name="durasi" value="<?php echo $game['durasi']; ?>" required>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="6" class="text-center py-5">
                                     <i class="bi bi-inbox" style="font-size: 3rem; color: var(--secondary-peach);"></i>
                                     <p class="mt-2 mb-0">Tidak ada data game ditemukan</p>
                                 </td>
@@ -303,122 +183,6 @@ include '../includes/navbar.php';
     </div>
 </div>
 
-<!-- Add Game Modal -->
-<div class="modal fade" id="addGameModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-peach), var(--secondary-peach)); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Game</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="">
-                <div class="modal-body">
-                    <input type="hidden" name="add_game" value="1">
-                
-                    <div class="mb-3">
-                        <label class="form-label">Skor Kiri</label>
-                        <input type="number" class="form-control" name="skor_kiri" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Skor Kanan</label>
-                        <input type="number" class="form-control" name="skor_kanan" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Durasi (detik)</label>
-                        <input type="number" class="form-control" name="durasi" required>
-                    </div>
-                </div>
-                <div class="modal-footer" style="border: none;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<!-- Edit Game Modal -->
-<div class="modal fade" id="editGameModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-peach), var(--secondary-peach)); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Game</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="">
-                <div class="modal-body">
-                    <input type="hidden" name="game_id" id="edit_game_id">
-                    <div class="mb-3">
-                        <label class="form-label">Player 1 Score</label>
-                        <input type="number" class="form-control form-control-custom" name="player1_score" id="edit_player1_score" required min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Player 2 Score</label>
-                        <input type="number" class="form-control form-control-custom" name="player2_score" id="edit_player2_score" required min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Game Duration (seconds)</label>
-                        <input type="number" class="form-control form-control-custom" name="game_duration" id="edit_game_duration" required min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control form-control-custom" name="notes" id="edit_notes" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer" style="border: none;">
-                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="edit_game" class="btn btn-peach">
-                        <i class="bi bi-save"></i> Update Game
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteGameModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-trash"></i> Delete Game</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this game? This action cannot be undone.</p>
-                <p class="text-danger mb-0"><strong>Game ID: #<span id="delete_game_id"></span></strong></p>
-            </div>
-            <div class="modal-footer" style="border: none;">
-                <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">
-                    <i class="bi bi-trash"></i> Delete
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-function editGame(game) {
-    document.getElementById('edit_game_id').value = game.id;
-    document.getElementById('edit_player1_score').value = game.player1_score;
-    document.getElementById('edit_player2_score').value = game.player2_score;
-    document.getElementById('edit_game_duration').value = game.game_duration;
-    document.getElementById('edit_notes').value = game.notes || '';
-    
-    var editModal = new bootstrap.Modal(document.getElementById('editGameModal'));
-    editModal.show();
-}
-
-function deleteGame(gameId) {
-    document.getElementById('delete_game_id').textContent = gameId;
-    document.getElementById('confirmDeleteBtn').href = 'delete_game.php?id=' + gameId;
-    
-    var deleteModal = new bootstrap.Modal(document.getElementById('deleteGameModal'));
-    deleteModal.show();
-}
-</script>
 
 <?php include '../includes/footer.php'; ?>

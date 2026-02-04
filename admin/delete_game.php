@@ -16,11 +16,7 @@ if(isset($_GET['id'])) {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $game_id);
     
-    if($stmt->execute()) {
-        $_SESSION['delete_success'] = 'Data pertandingan berhasil dihapus!';
-    } else {
-        $_SESSION['delete_error'] = 'Gagal menghapus data pertandingan!';
-    }
+    $stmt->execute();
 }
 
 header("Location: games.php");

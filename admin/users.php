@@ -155,7 +155,7 @@ $result = $stmt->get_result();
 $total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM users $where_clause ORDER BY created_at DESC LIMIT ? OFFSET ?";
+$query = "SELECT * FROM users $where_clause ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 
 // Append limit and offset to params
@@ -172,16 +172,16 @@ include '../includes/header.php';
 include '../includes/navbar.php';
 
 // Check for session alerts (e.g. from delete_user.php)
-if(isset($_SESSION['delete_success'])) {
+if(isset($_SESSION['user_success'])) {
     $swal_title = 'Berhasil!';
-    $swal_text = $_SESSION['delete_success'];
+    $swal_text = $_SESSION['user_success'];
     $swal_icon = 'success';
-    unset($_SESSION['delete_success']);
-} elseif(isset($_SESSION['delete_error'])) {
+    unset($_SESSION['user_success']);
+} elseif(isset($_SESSION['user_error'])) {
     $swal_title = 'Gagal!';
-    $swal_text = $_SESSION['delete_error'];
+    $swal_text = $_SESSION['user_error'];
     $swal_icon = 'error';
-    unset($_SESSION['delete_error']);
+    unset($_SESSION['user_error']);
 }
 ?>
 

@@ -24,9 +24,9 @@ if(isset($_GET['id'])) {
     $stmt->bind_param("i", $user_id);
     
     if($stmt->execute()) {
-        $_SESSION['delete_success'] = 'User berhasil dihapus!';
+        $_SESSION['user_success'] = 'User berhasil dihapus!';
     } else {
-        $_SESSION['delete_error'] = 'Gagal menghapus user!';
+        $_SESSION['user_error'] = 'Gagal menghapus user!';
     }
 }
 
