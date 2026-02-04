@@ -25,11 +25,17 @@ if(isset($_POST['add_user'])) {
     
     // Validasi
     if(empty($username) || empty($password) || empty($full_name)) {
-        $error = 'Semua field harus diisi!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Semua field harus diisi!';
+        $swal_icon = 'error';
     } elseif(strlen($username) < 4) {
-        $error = 'Username minimal 4 karakter!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Username minimal 4 karakter!';
+        $swal_icon = 'error';
     } elseif(strlen($password) < 6) {
-        $error = 'Password minimal 6 karakter!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Password minimal 6 karakter!';
+        $swal_icon = 'error';
     } else {
         // Cek username sudah ada atau belum
         $query = "SELECT id FROM users WHERE username = ?";
@@ -39,7 +45,9 @@ if(isset($_POST['add_user'])) {
         $result = $stmt->get_result();
         
         if($result->num_rows > 0) {
-            $error = 'Username sudah digunakan!';
+            $swal_title = 'Gagal!';
+            $swal_text = 'Username sudah digunakan!';
+            $swal_icon = 'error';
         } else {
             // Insert user baru
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -48,9 +56,13 @@ if(isset($_POST['add_user'])) {
             $stmt->bind_param("ssss", $username, $hashed_password, $full_name, $role);
             
             if($stmt->execute()) {
-                $success = 'User berhasil ditambahkan!';
+                $swal_title = 'Berhasil!';
+                $swal_text = 'User berhasil ditambahkan!';
+                $swal_icon = 'success';
             } else {
-                $error = 'Gagal menambahkan user!';
+                $swal_title = 'Error!';
+                $swal_text = 'Gagal menambahkan user: ' . $conn->error;
+                $swal_icon = 'error';
             }
         }
     }
@@ -66,7 +78,9 @@ if(isset($_POST['edit_user'])) {
     
     // Validasi
     if(empty($username) || empty($full_name)) {
-        $error = 'Username dan nama lengkap harus diisi!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Username dan nama lengkap harus diisi!';
+        $swal_icon = 'error';
     } else {
         // Cek username conflict (kecuali untuk user yang sama)
         $query = "SELECT id FROM users WHERE username = ? AND id != ?";
@@ -76,26 +90,36 @@ if(isset($_POST['edit_user'])) {
         $result = $stmt->get_result();
         
         if($result->num_rows > 0) {
-            $error = 'Username sudah digunakan oleh user lain!';
+            $swal_title = 'Gagal!';
+            $swal_text = 'Username sudah digunakan oleh user lain!';
+            $swal_icon = 'error';
         } else {
             // Update user
+            $updated = false;
+            
             if(!empty($password)) {
                 // Update dengan password baru
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 $query = "UPDATE users SET username = ?, password = ?, full_name = ?, role = ? WHERE id = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("ssssi", $username, $hashed_password, $full_name, $role, $user_id);
+                $updated = $stmt->execute();
             } else {
                 // Update tanpa password
                 $query = "UPDATE users SET username = ?, full_name = ?, role = ? WHERE id = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("sssi", $username, $full_name, $role, $user_id);
+                $updated = $stmt->execute();
             }
             
-            if($stmt->execute()) {
-                $success = 'User berhasil diupdate!';
+            if($updated) {
+                $swal_title = 'Berhasil!';
+                $swal_text = 'User berhasil diupdate!';
+                $swal_icon = 'success';
             } else {
-                $error = 'Gagal mengupdate user!';
+                $swal_title = 'Error!';
+                $swal_text = 'Gagal mengupdate user: ' . $conn->error;
+                $swal_icon = 'error';
             }
         }
     }
@@ -146,7 +170,23 @@ $users = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';
+
+// Check for session alerts (e.g. from delete_user.php)
+if(isset($_SESSION['delete_success'])) {
+    $swal_title = 'Berhasil!';
+    $swal_text = $_SESSION['delete_success'];
+    $swal_icon = 'success';
+    unset($_SESSION['delete_success']);
+} elseif(isset($_SESSION['delete_error'])) {
+    $swal_title = 'Gagal!';
+    $swal_text = $_SESSION['delete_error'];
+    $swal_icon = 'error';
+    unset($_SESSION['delete_error']);
+}
 ?>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-custom mt-4">
     <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
@@ -159,18 +199,21 @@ include '../includes/navbar.php';
         </button>
     </div>
     
-    <?php if($success): ?>
-    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> <?php echo $success; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
-    
-    <?php if($error): ?>
-    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> <?php echo $error; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <?php if(isset($swal_title)): ?>
+    <script>
+        Swal.fire({
+            title: '<?php echo $swal_title; ?>',
+            text: '<?php echo $swal_text; ?>',
+            icon: '<?php echo $swal_icon; ?>',
+            confirmButtonColor: '#ff9a9e',
+            border: 'none'
+        }).then(() => {
+            // Clear headers to prevent resubmission if needed, or just let it stay
+            if (window.history.replaceState) {
+                window.history.replaceState( null, null, window.location.href );
+            }
+        });
+    </script>
     <?php endif; ?>
     
     <!-- Search -->
@@ -231,8 +274,8 @@ include '../includes/navbar.php';
                                 </td>
                                 <td><?php echo date('d M Y, H:i', strtotime($user['created_at'])); ?></td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-peach me-1" 
-                                            onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)">
+                                    <button class="btn btn-sm btn-outline-peach me-1 btn-edit-user" 
+                                            data-user='<?php echo htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8'); ?>'>
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <?php if($user['id'] != $_SESSION['user_id']): ?>
@@ -294,8 +337,9 @@ include '../includes/navbar.php';
                 <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New User</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="users.php">
                 <div class="modal-body">
+                    <input type="hidden" name="add_user" value="1">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control form-control-custom" name="username" required minlength="4">
@@ -320,7 +364,7 @@ include '../includes/navbar.php';
                 </div>
                 <div class="modal-footer" style="border: none;">
                     <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="add_user" class="btn btn-peach">
+                    <button type="submit" class="btn btn-peach">
                         <i class="bi bi-save"></i> Save User
                     </button>
                 </div>
@@ -337,8 +381,9 @@ include '../includes/navbar.php';
                 <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="users.php">
                 <div class="modal-body">
+                    <input type="hidden" name="edit_user" value="1">
                     <input type="hidden" name="user_id" id="edit_user_id">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
@@ -363,7 +408,7 @@ include '../includes/navbar.php';
                 </div>
                 <div class="modal-footer" style="border: none;">
                     <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="edit_user" class="btn btn-peach">
+                    <button type="submit" class="btn btn-peach">
                         <i class="bi bi-save"></i> Update User
                     </button>
                 </div>
@@ -395,16 +440,29 @@ include '../includes/navbar.php';
 </div>
 
 <script>
-function editUser(user) {
-    document.getElementById('edit_user_id').value = user.id;
-    document.getElementById('edit_username').value = user.username;
-    document.getElementById('edit_full_name').value = user.full_name;
-    document.getElementById('edit_role').value = user.role;
-    document.getElementById('edit_password').value = '';
-    
-    var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-    editModal.show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit User Handler
+    const editButtons = document.querySelectorAll('.btn-edit-user');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const user = JSON.parse(this.getAttribute('data-user'));
+                
+                document.getElementById('edit_user_id').value = user.id;
+                document.getElementById('edit_username').value = user.username;
+                document.getElementById('edit_full_name').value = user.full_name;
+                document.getElementById('edit_role').value = user.role;
+                document.getElementById('edit_password').value = '';
+                
+                var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                editModal.show();
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+                Swal.fire('Error', 'Gagal mengambil data user', 'error');
+            }
+        });
+    });
+});
 
 function deleteUser(userId, username) {
     document.getElementById('delete_user_name').textContent = username;
