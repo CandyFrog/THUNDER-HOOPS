@@ -21,6 +21,7 @@ if(isset($_SESSION['user_id'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -50,7 +51,7 @@ if(isset($_SESSION['user_id'])) {
                 <div class="col-lg-6">
                     <div class="text-center">
                         <div style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 30px; padding: 3rem; box-shadow: 0 20px 60px rgba(232, 167, 150, 0.3);">
-                            <i class="bi bi-trophy-fill" style="font-size: 8rem; color: var(--primary-peach);"></i>
+                            <img src="assets/logo.png" alt="Logo" class="rounded-circle shadow mb-4" style="width: 150px; height: 150px; object-fit: cover; border: 5px solid var(--primary-peach);">
                             <h3 style="color: var(--text-dark); margin-top: 1rem; font-weight: 700;">
                                 Track Your Games
                             </h3>

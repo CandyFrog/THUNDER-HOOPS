@@ -62,13 +62,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Login - Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="text-center mb-4">
-                <h1 class="auth-title">🏀 Basketball Arcade</h1>
+                <div class="mb-3">
+                    <img src="../assets/logo.png" alt="Logo" class="rounded-circle shadow" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--primary-peach);">
+                </div>
+                <h1 class="auth-title">Basketball Arcade</h1>
                 <p class="auth-subtitle">Masuk ke akun Anda</p>
             </div>
             
