@@ -53,37 +53,42 @@ include '../includes/navbar.php';
     </div>
     
     <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3 col-sm-6">
-            <div class="stats-card">
-                <div class="stats-number"><?php echo $total_games; ?></div>
-                <div class="stats-label">Total Games</div>
+    <div id="stats-container">
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
+                    <div class="stats-label">Total Games</div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stats-card">
-                <div class="stats-number"><?php echo $total_users; ?></div>
-                <div class="stats-label">Total Users</div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="stats-number" id="stat-total-users"><?php echo $total_users; ?></div>
+                    <div class="stats-label">Total Users</div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stats-card">
-                <div class="stats-number"><?php echo $player1_wins; ?></div>
-                <div class="stats-label">Player 1 Wins</div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
+                    <div class="stats-label">Player 1 Wins</div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stats-card">
-                <div class="stats-number"><?php echo $player2_wins; ?></div>
-                <div class="stats-label">Player 2 Wins</div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
+                    <div class="stats-label">Player 2 Wins</div>
+                </div>
             </div>
         </div>
     </div>
     
     <!-- Recent Games -->
     <div class="card card-custom">
-        <div class="card-header-custom">
-            <i class="bi bi-clock-history"></i> Recent Games
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-clock-history"></i> Recent Games</span>
+            <span class="badge bg-soft-peach text-peach" id="live-indicator">
+                <span class="spinner-grow spinner-grow-sm me-1" role="status"></span> LIVE
+            </span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -98,7 +103,7 @@ include '../includes/navbar.php';
                             <th>Waktu</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="recent-games-table">
                         <?php if(count($recent_games) > 0): ?>
                             <?php foreach($recent_games as $game): ?>
                             <tr>
@@ -127,5 +132,58 @@ include '../includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script>
+function refreshDashboard() {
+    fetch('../api/dashboard_stats.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update Stats
+                document.getElementById('stat-total-games').innerText = data.stats.total_games;
+                document.getElementById('stat-total-users').innerText = data.stats.total_users;
+                document.getElementById('stat-player1-wins').innerText = data.stats.player1_wins;
+                document.getElementById('stat-player2-wins').innerText = data.stats.player2_wins;
+
+                // Update Table
+                const tbody = document.getElementById('recent-games-table');
+                let tableHtml = '';
+                
+                if (data.recent_games.length > 0) {
+                    data.recent_games.forEach(game => {
+                        const badgeClass = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
+                        const badgeText = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
+                        
+                        tableHtml += `
+                            <tr>
+                                <td>#${game.id}</td>
+                                <td><strong>${game.skor_kiri}</strong></td>
+                                <td><strong>${game.skor_kanan}</strong></td>
+                                <td><span class="${badgeClass}">${badgeText}</span></td>
+                                <td>${game.durasi}s</td>
+                                <td>-</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data game</td></tr>';
+                }
+                
+                // Only update if HTML changed to avoid flickering
+                if (tbody.innerHTML !== tableHtml) {
+                    tbody.innerHTML = tableHtml;
+                }
+            }
+        })
+        .catch(error => console.error('Error refreshing dashboard:', error));
+}
+
+// Poll every 5 seconds
+setInterval(refreshDashboard, 5000);
+</script>
+
+<style>
+.bg-soft-peach { background-color: rgba(255, 154, 158, 0.1); }
+</style>
 
 <?php include '../includes/footer.php'; ?>

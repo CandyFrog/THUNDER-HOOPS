@@ -1,5 +1,9 @@
 <?php
-// api/match.php
+// Tambahkan ini di paling atas untuk log data yang masuk ke file text
+// Jadi kamu bisa cek file 'debug.txt' kalau gagal terus
+$debug_data = file_get_contents('php://input') . " | POST: " . json_encode($_POST);
+file_put_contents('debug_log.txt', $debug_data . PHP_EOL, FILE_APPEND);
+
 header('Content-Type: application/json');
 require_once '../config/koneksi.php';
 

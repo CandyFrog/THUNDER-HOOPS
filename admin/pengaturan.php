@@ -1,7 +1,9 @@
 <?php
+ob_start();
 // admin/pengaturan.php
-require_once __DIR__ . '/../midleware/cek_login.php';
-require_once __DIR__ . '/../config/koneksi.php';
+
+require_once '../midleware/cek_login.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
 if($_SESSION['role'] != 'admin') {
@@ -14,37 +16,40 @@ $message = "";
 $message_type = "";
 
 // Handle Form Submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_duration'])) {
-    $new_duration = (int)$_POST['match_duration'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == 1;
-    
-    if ($new_duration > 0) {
-        $query = "UPDATE settings SET value = ? WHERE name = 'match_duration'";
+
+    if (isset($_POST['update_duration'])) {
+        $new_duration = (int)$_POST['match_duration'];
+        if ($new_duration > 0) {
+            $query = "UPDATE settings SET value = ? WHERE name = 'match_duration'";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $new_duration);
+            
+            if ($stmt->execute()) {
+                if ($is_ajax) {
+                    ob_clean();
+                    echo json_encode(['status' => 'success', 'message' => 'Durasi pertandingan berhasil diperbarui!']);
+                    exit();
+                }
+                $message = "Durasi pertandingan berhasil diperbarui!";
+                $message_type = "success";
+            }
+        }
+    } elseif (isset($_POST['game_command'])) {
+        $cmd = $_POST['game_command'];
+        $query = "UPDATE settings SET value = ? WHERE name = 'game_command'";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $new_duration);
+        $stmt->bind_param("s", $cmd);
         
         if ($stmt->execute()) {
             if ($is_ajax) {
-                echo json_encode(['status' => 'success', 'message' => 'Durasi pertandingan berhasil diperbarui!']);
+                ob_clean();
+                $msg = ($cmd == 'start') ? "Sinyal MULAI dikirim ke Arduino!" : "Sinyal RESET dikirim ke Arduino!";
+                echo json_encode(['status' => 'success', 'message' => $msg]);
                 exit();
             }
-            $message = "Durasi pertandingan berhasil diperbarui!";
-            $message_type = "success";
-        } else {
-            if ($is_ajax) {
-                echo json_encode(['status' => 'error', 'message' => 'Gagal memperbarui durasi.']);
-                exit();
-            }
-            $message = "Gagal memperbarui durasi.";
-            $message_type = "danger";
         }
-    } else {
-        if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'message' => 'Durasi harus lebih dari 0.']);
-            exit();
-        }
-        $message = "Durasi harus lebih dari 0.";
-        $message_type = "warning";
     }
 }
 
@@ -54,9 +59,12 @@ $result = $conn->query($query);
 $settings = $result->fetch_assoc();
 $current_duration = $settings['value'] ?? 60;
 
-include __DIR__ . '/../includes/header.php';
-include __DIR__ . '/../includes/navbar.php';
+include '../includes/header.php';
+include '../includes/navbar.php';
 ?>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-custom mt-4">
     <div class="mb-4">
@@ -64,13 +72,7 @@ include __DIR__ . '/../includes/navbar.php';
         <p class="page-subtitle">Atur parameter teknis untuk alat Arduino THUNDER-HOOPS</p>
     </div>
 
-    <div id="ajax-alert" style="display: none;">
-        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <span id="ajax-message"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
+    <div id="ajax-alert" style="display: none;"></div>
 
     <?php if ($message): ?>
     <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
@@ -87,7 +89,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <span class="fw-bold"><i class="bi bi-clock-history me-2 text-peach"></i>Durasi Pertandingan</span>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" action="">
+                    <form method="POST" action="" class="form-ajax-settings">
                         <div class="mb-4">
                             <label for="match_duration" class="form-label small fw-bold text-muted mb-2">Lama Waktu (Detik)</label>
                             <div class="input-group">
@@ -105,6 +107,43 @@ include __DIR__ . '/../includes/navbar.php';
                             <i class="bi bi-save me-1"></i> <span id="btn-text">Simpan Perubahan</span>
                         </button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Kontrol Game Interaktif -->
+            <div class="card card-custom shadow-sm border-0 mt-4">
+                <div class="card-header-custom p-3 bg-white border-bottom">
+                    <span class="fw-bold"><i class="bi bi-controller me-2 text-peach"></i>Kontrol Langsung</span>
+                </div>
+                <div class="card-body p-4">
+                    <?php
+                    $q_cmd = "SELECT value FROM settings WHERE name = 'game_command'";
+                    $r_cmd = $conn->query($q_cmd);
+                    $curr_cmd = ($r_cmd && $row = $r_cmd->fetch_assoc()) ? $row['value'] : 'idle';
+                    ?>
+                    <div class="mb-3 text-center">
+                        <span class="small text-muted d-block mb-1">Status Perintah Saat Ini:</span>
+                        <span class="badge <?php 
+                            echo ($curr_cmd == 'start') ? 'bg-success' : (($curr_cmd == 'reset') ? 'bg-danger' : 'bg-secondary'); 
+                        ?> p-2 px-3 rounded-pill uppercase">
+                            <i class="bi bi-broadcast me-1"></i> <?php echo strtoupper($curr_cmd); ?>
+                        </span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <button onclick="sendGameCommand('start')" class="btn btn-success w-100 py-3 rounded-4 shadow-sm border-0">
+                                <i class="bi bi-play-fill fs-4 d-block"></i>
+                                <span class="fw-bold">MULAI GAME</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="sendGameCommand('reset')" class="btn btn-danger w-100 py-3 rounded-4 shadow-sm border-0">
+                                <i class="bi bi-arrow-counterclockwise fs-4 d-block"></i>
+                                <span class="fw-bold">RESET / RESTART</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,12 +175,11 @@ include __DIR__ . '/../includes/navbar.php';
 </div>
 
 <script>
-document.querySelector('form').addEventListener('submit', function(e) {
+// Handle Update Durasi
+document.querySelector('.form-ajax-settings').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-save');
     const btnText = document.getElementById('btn-text');
-    const alertDiv = document.getElementById('ajax-alert');
-    const messageSpan = document.getElementById('ajax-message');
     const formData = new FormData(this);
     formData.append('ajax', '1');
     formData.append('update_duration', '1');
@@ -153,33 +191,98 @@ document.querySelector('form').addEventListener('submit', function(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(async response => {
+        const text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Raw Response:', text);
+            throw new Error('Terjadi kesalahan pada format data server.');
+        }
+    })
     .then(data => {
-        alertDiv.style.display = 'block';
-        messageSpan.innerText = data.message;
-        const alertInner = alertDiv.querySelector('.alert');
-        alertInner.className = `alert alert-${data.status === 'success' ? 'success' : 'danger'} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4`;
-        
         btn.disabled = false;
         btnText.innerText = 'Simpan Perubahan';
         
-        if(data.status === 'success') {
-            setTimeout(() => {
-                alertDiv.style.display = 'none';
-            }, 3000);
+        Swal.fire({
+            title: data.status === 'success' ? 'Berhasil!' : 'Gagal!',
+            text: data.message,
+            icon: data.status,
+            confirmButtonColor: '#ff9a9e'
+        });
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btnText.innerText = 'Simpan Perubahan';
+        Swal.fire({
+            title: 'Error!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#ff9a9e'
+        });
+    });
+});
+
+// Handle Game Commands (Start/Reset)
+function sendGameCommand(cmd) {
+    const formData = new FormData();
+    formData.append('ajax', '1');
+    formData.append('game_command', cmd);
+
+    fetch('pengaturan.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.fire({
+            title: 'Sinyal Terkirim!',
+            text: data.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        
+        // Update badge status di UI
+        const badge = document.querySelector('.badge.uppercase');
+        if(badge) {
+            badge.innerText = cmd.toUpperCase();
+            badge.className = `badge ${cmd === 'start' ? 'bg-success' : (cmd === 'reset' ? 'bg-danger' : 'bg-secondary')} p-2 px-3 rounded-pill uppercase`;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        btn.disabled = false;
-        btnText.innerText = 'Simpan Perubahan';
     });
-});
+}
+
+// Poll status perintah setiap 3 detik
+function updateStatusBadge() {
+    fetch('../api/get_settings.php')
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.querySelector('.badge.uppercase');
+        if(badge) {
+            const cmd = data.game_command;
+            badge.innerText = cmd.toUpperCase();
+            badge.className = `badge ${cmd === 'start' ? 'bg-success' : (cmd === 'reset' ? 'bg-danger' : 'bg-secondary')} p-2 px-3 rounded-pill uppercase`;
+        }
+    });
+}
+setInterval(updateStatusBadge, 3000);
 
 function copyApiUrl() {
     const url = document.getElementById('api-url').innerText;
     navigator.clipboard.writeText(url).then(() => {
-        alert('URL API berhasil disalin!');
+        Swal.fire({
+            title: 'Tersalin!',
+            text: 'URL API berhasil disalin ke clipboard.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
     });
 }
 </script>
@@ -195,4 +298,4 @@ function copyApiUrl() {
 .form-control-custom:focus { border-color: var(--primary-peach); box-shadow: 0 0 0 0.25rem rgba(255, 154, 158, 0.1); background-color: #fff !important; }
 </style>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

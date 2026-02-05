@@ -52,7 +52,7 @@ $total_records = $stmt_total->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
 // Get paginated results
-$query_games = "SELECT * FROM match_data $where_sql ORDER BY id DESC LIMIT ? OFFSET ?";
+$query_games = "SELECT * FROM match_data $where_sql ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt_games = $conn->prepare($query_games);
 
 $final_params = array_merge($params, [$limit, $offset]);

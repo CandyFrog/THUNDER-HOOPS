@@ -1,12 +1,12 @@
 <?php
 $host = "localhost";
-$db_name = "basketball_arcade";
-$username = "root";
-$password = "";
+$user = "root";
+$pass = "";
+$db   = "basketball_arcade";
 
-$conn = mysqli_connect($host, $username, $password, $db_name);
+
+$conn = mysqli_connect($host, $user, $pass, $db);
 
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    die("Koneksi gagal: " . mysqli_connect_error());
 }
-?>
