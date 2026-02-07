@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Jangan redirect folder API (Supaya Arduino/IoT tetap bisa pakai HTTP)
+RewriteCond %{REQUEST_URI} !^/thunder-hoops/api/ [NC]
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
