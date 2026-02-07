@@ -1,14 +1,14 @@
 <?php
 // register.php
 session_start();
-require_once 'config/database.php';
+require_once '../config/koneksi.php';
 
 // Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
     if($_SESSION['role'] == 'admin') {
-        header("Location: admin/dashboard.php");
+        header("Location: ../admin/dashboard.php");
     } else {
-        header("Location: user/dashboard.php");
+        header("Location: ../user/dashboard.php");
     }
     exit();
 }
@@ -32,25 +32,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif($password !== $confirm_password) {
         $error = 'Password dan konfirmasi password tidak cocok!';
     } else {
-        $database = new Database();
-        $db = $database->getConnection();
-        
         // Cek username sudah ada atau belum
-        $query = "SELECT id FROM users WHERE username = :username";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
+        $query = "SELECT id FROM users WHERE username = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
+        if($result->num_rows > 0) {
             $error = 'Username sudah digunakan!';
         } else {
             // Insert user baru
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $query = "INSERT INTO users (username, password, full_name, role) VALUES (:username, :password, :full_name, 'user')";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $hashed_password);
-            $stmt->bindParam(':full_name', $full_name);
+            $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, 'user')";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("sss", $username, $hashed_password, $full_name);
             
             if($stmt->execute()) {
                 $success = 'Registrasi berhasil! Silakan login.';
@@ -70,13 +66,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Register - Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="text-center mb-4">
-                <h1 class="auth-title">🏀 Basketball Arcade</h1>
+                <div class="mb-3">
+                    <img src="../assets/logo.png" alt="Logo" class="rounded-circle shadow" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--primary-peach);">
+                </div>
+                <h1 class="auth-title">Basketball Arcade</h1>
                 <p class="auth-subtitle">Buat akun baru</p>
             </div>
             

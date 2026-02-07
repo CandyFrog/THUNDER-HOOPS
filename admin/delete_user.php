@@ -1,11 +1,11 @@
 <?php
 // admin/delete_user.php
-session_start();
-require_once '../config/database.php';
+require_once '../midleware/cek_login.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+if($_SESSION['role'] != 'admin') {
+    header("Location: ../auth/login.php");
     exit();
 }
 
@@ -19,17 +19,14 @@ if(isset($_GET['id'])) {
         exit();
     }
     
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    $query = "DELETE FROM users WHERE id = :id";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':id', $user_id);
+    $query = "DELETE FROM users WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
     
     if($stmt->execute()) {
-        $_SESSION['delete_success'] = 'User berhasil dihapus!';
+        $_SESSION['user_success'] = 'User berhasil dihapus!';
     } else {
-        $_SESSION['delete_error'] = 'Gagal menghapus user!';
+        $_SESSION['user_error'] = 'Gagal menghapus user!';
     }
 }
 

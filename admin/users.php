@@ -1,18 +1,17 @@
 <?php
 // admin/users.php
-session_start();
-require_once '../config/database.php';
+require_once '../midleware/cek_login.php';
+require_once '../config/koneksi.php';
 
 // Check if admin
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+if($_SESSION['role'] != 'admin') {
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "Manage Users - Basketball Arcade";
 
-$database = new Database();
-$db = $database->getConnection();
+// Connection already included
 
 $success = '';
 $error = '';
@@ -26,34 +25,44 @@ if(isset($_POST['add_user'])) {
     
     // Validasi
     if(empty($username) || empty($password) || empty($full_name)) {
-        $error = 'Semua field harus diisi!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Semua field harus diisi!';
+        $swal_icon = 'error';
     } elseif(strlen($username) < 4) {
-        $error = 'Username minimal 4 karakter!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Username minimal 4 karakter!';
+        $swal_icon = 'error';
     } elseif(strlen($password) < 6) {
-        $error = 'Password minimal 6 karakter!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Password minimal 6 karakter!';
+        $swal_icon = 'error';
     } else {
         // Cek username sudah ada atau belum
-        $query = "SELECT id FROM users WHERE username = :username";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
+        $query = "SELECT id FROM users WHERE username = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
-            $error = 'Username sudah digunakan!';
+        if($result->num_rows > 0) {
+            $swal_title = 'Gagal!';
+            $swal_text = 'Username sudah digunakan!';
+            $swal_icon = 'error';
         } else {
             // Insert user baru
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $query = "INSERT INTO users (username, password, full_name, role) VALUES (:username, :password, :full_name, :role)";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $hashed_password);
-            $stmt->bindParam(':full_name', $full_name);
-            $stmt->bindParam(':role', $role);
+            $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ssss", $username, $hashed_password, $full_name, $role);
             
             if($stmt->execute()) {
-                $success = 'User berhasil ditambahkan!';
+                $swal_title = 'Berhasil!';
+                $swal_text = 'User berhasil ditambahkan!';
+                $swal_icon = 'success';
             } else {
-                $error = 'Gagal menambahkan user!';
+                $swal_title = 'Error!';
+                $swal_text = 'Gagal menambahkan user: ' . $conn->error;
+                $swal_icon = 'error';
             }
         }
     }
@@ -69,40 +78,48 @@ if(isset($_POST['edit_user'])) {
     
     // Validasi
     if(empty($username) || empty($full_name)) {
-        $error = 'Username dan nama lengkap harus diisi!';
+        $swal_title = 'Gagal!';
+        $swal_text = 'Username dan nama lengkap harus diisi!';
+        $swal_icon = 'error';
     } else {
         // Cek username conflict (kecuali untuk user yang sama)
-        $query = "SELECT id FROM users WHERE username = :username AND id != :user_id";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':user_id', $user_id);
+        $query = "SELECT id FROM users WHERE username = ? AND id != ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("si", $username, $user_id);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        if($stmt->rowCount() > 0) {
-            $error = 'Username sudah digunakan oleh user lain!';
+        if($result->num_rows > 0) {
+            $swal_title = 'Gagal!';
+            $swal_text = 'Username sudah digunakan oleh user lain!';
+            $swal_icon = 'error';
         } else {
             // Update user
+            $updated = false;
+            
             if(!empty($password)) {
                 // Update dengan password baru
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $query = "UPDATE users SET username = :username, password = :password, full_name = :full_name, role = :role WHERE id = :id";
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':password', $hashed_password);
+                $query = "UPDATE users SET username = ?, password = ?, full_name = ?, role = ? WHERE id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ssssi", $username, $hashed_password, $full_name, $role, $user_id);
+                $updated = $stmt->execute();
             } else {
                 // Update tanpa password
-                $query = "UPDATE users SET username = :username, full_name = :full_name, role = :role WHERE id = :id";
-                $stmt = $db->prepare($query);
+                $query = "UPDATE users SET username = ?, full_name = ?, role = ? WHERE id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("sssi", $username, $full_name, $role, $user_id);
+                $updated = $stmt->execute();
             }
             
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':full_name', $full_name);
-            $stmt->bindParam(':role', $role);
-            $stmt->bindParam(':id', $user_id);
-            
-            if($stmt->execute()) {
-                $success = 'User berhasil diupdate!';
+            if($updated) {
+                $swal_title = 'Berhasil!';
+                $swal_text = 'User berhasil diupdate!';
+                $swal_icon = 'success';
             } else {
-                $error = 'Gagal mengupdate user!';
+                $swal_title = 'Error!';
+                $swal_text = 'Gagal mengupdate user: ' . $conn->error;
+                $swal_icon = 'error';
             }
         }
     }
@@ -116,33 +133,60 @@ $offset = ($page - 1) * $limit;
 // Search functionality
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $where_clause = '';
+$params = [];
+$types = '';
+
 if(!empty($search)) {
-    $where_clause = "WHERE username LIKE :search OR full_name LIKE :search OR role LIKE :search";
+    $where_clause = "WHERE username LIKE ? OR full_name LIKE ? OR role LIKE ?";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= 'sss';
 }
 
 $query = "SELECT COUNT(*) as total FROM users $where_clause";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $search_param = "%$search%";
-    $stmt->bindParam(':search', $search_param);
+$stmt = $conn->prepare($query);
+if(!empty($params)) {
+    $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
-$total_records = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$result = $stmt->get_result();
+$total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM users $where_clause ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-$stmt = $db->prepare($query);
-if(!empty($search)) {
-    $stmt->bindParam(':search', $search_param);
-}
-$stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+$query = "SELECT * FROM users $where_clause ORDER BY id ASC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($query);
+
+// Append limit and offset to params
+$params[] = $limit;
+$params[] = $offset;
+$types .= 'ii';
+
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $stmt->get_result();
+$users = $result->fetch_all(MYSQLI_ASSOC);
 
 include '../includes/header.php';
 include '../includes/navbar.php';
+
+// Check for session alerts (e.g. from delete_user.php)
+if(isset($_SESSION['user_success'])) {
+    $swal_title = 'Berhasil!';
+    $swal_text = $_SESSION['user_success'];
+    $swal_icon = 'success';
+    unset($_SESSION['user_success']);
+} elseif(isset($_SESSION['user_error'])) {
+    $swal_title = 'Gagal!';
+    $swal_text = $_SESSION['user_error'];
+    $swal_icon = 'error';
+    unset($_SESSION['user_error']);
+}
 ?>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-custom mt-4">
     <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
@@ -155,18 +199,21 @@ include '../includes/navbar.php';
         </button>
     </div>
     
-    <?php if($success): ?>
-    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> <?php echo $success; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
-    
-    <?php if($error): ?>
-    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> <?php echo $error; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <?php if(isset($swal_title)): ?>
+    <script>
+        Swal.fire({
+            title: '<?php echo $swal_title; ?>',
+            text: '<?php echo $swal_text; ?>',
+            icon: '<?php echo $swal_icon; ?>',
+            confirmButtonColor: '#ff9a9e',
+            border: 'none'
+        }).then(() => {
+            // Clear headers to prevent resubmission if needed, or just let it stay
+            if (window.history.replaceState) {
+                window.history.replaceState( null, null, window.location.href );
+            }
+        });
+    </script>
     <?php endif; ?>
     
     <!-- Search -->
@@ -197,6 +244,7 @@ include '../includes/navbar.php';
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Foto</th>
                             <th>Username</th>
                             <th>Full Name</th>
                             <th>Role</th>
@@ -210,7 +258,12 @@ include '../includes/navbar.php';
                             <tr>
                                 <td><strong>#<?php echo $user['id']; ?></strong></td>
                                 <td>
-                                    <i class="bi bi-person-circle" style="color: var(--primary-peach);"></i>
+                                    <?php 
+                                    $foto = !empty($user['foto_profil']) ? '../assets/foto_profil/' . $user['foto_profil'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name']) . '&background=E8A796&color=fff';
+                                    ?>
+                                    <img src="<?php echo $foto; ?>" alt="Foto" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid white;">
+                                </td>
+                                <td>
                                     <strong><?php echo htmlspecialchars($user['username']); ?></strong>
                                 </td>
                                 <td><?php echo htmlspecialchars($user['full_name']); ?></td>
@@ -227,8 +280,8 @@ include '../includes/navbar.php';
                                 </td>
                                 <td><?php echo date('d M Y, H:i', strtotime($user['created_at'])); ?></td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-peach me-1" 
-                                            onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)">
+                                    <button class="btn btn-sm btn-outline-peach me-1 btn-edit-user" 
+                                            data-user='<?php echo htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8'); ?>'>
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <?php if($user['id'] != $_SESSION['user_id']): ?>
@@ -290,8 +343,9 @@ include '../includes/navbar.php';
                 <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New User</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="users.php">
                 <div class="modal-body">
+                    <input type="hidden" name="add_user" value="1">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control form-control-custom" name="username" required minlength="4">
@@ -316,7 +370,7 @@ include '../includes/navbar.php';
                 </div>
                 <div class="modal-footer" style="border: none;">
                     <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="add_user" class="btn btn-peach">
+                    <button type="submit" class="btn btn-peach">
                         <i class="bi bi-save"></i> Save User
                     </button>
                 </div>
@@ -333,8 +387,9 @@ include '../includes/navbar.php';
                 <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="users.php">
                 <div class="modal-body">
+                    <input type="hidden" name="edit_user" value="1">
                     <input type="hidden" name="user_id" id="edit_user_id">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
@@ -359,7 +414,7 @@ include '../includes/navbar.php';
                 </div>
                 <div class="modal-footer" style="border: none;">
                     <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="edit_user" class="btn btn-peach">
+                    <button type="submit" class="btn btn-peach">
                         <i class="bi bi-save"></i> Update User
                     </button>
                 </div>
@@ -391,16 +446,29 @@ include '../includes/navbar.php';
 </div>
 
 <script>
-function editUser(user) {
-    document.getElementById('edit_user_id').value = user.id;
-    document.getElementById('edit_username').value = user.username;
-    document.getElementById('edit_full_name').value = user.full_name;
-    document.getElementById('edit_role').value = user.role;
-    document.getElementById('edit_password').value = '';
-    
-    var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-    editModal.show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit User Handler
+    const editButtons = document.querySelectorAll('.btn-edit-user');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const user = JSON.parse(this.getAttribute('data-user'));
+                
+                document.getElementById('edit_user_id').value = user.id;
+                document.getElementById('edit_username').value = user.username;
+                document.getElementById('edit_full_name').value = user.full_name;
+                document.getElementById('edit_role').value = user.role;
+                document.getElementById('edit_password').value = '';
+                
+                var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                editModal.show();
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+                Swal.fire('Error', 'Gagal mengambil data user', 'error');
+            }
+        });
+    });
+});
 
 function deleteUser(userId, username) {
     document.getElementById('delete_user_name').textContent = username;
