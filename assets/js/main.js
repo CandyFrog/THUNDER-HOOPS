@@ -44,3 +44,21 @@ document.querySelectorAll('form').forEach(function(form) {
         }
     });
 });
+
+// Password Visibility Toggle
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('password-toggle')) {
+        const toggle = e.target;
+        const input = toggle.parentElement.querySelector('input');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.classList.remove('bi-eye');
+            toggle.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            toggle.classList.remove('bi-eye-slash');
+            toggle.classList.add('bi-eye');
+        }
+    }
+});
