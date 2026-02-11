@@ -29,8 +29,20 @@ $wins = [];
 while($row = $result->fetch_assoc()) {
     $wins[$row['pemenang']] = (int)$row['total'];
 }
-$player1_wins = $wins['Player 1'] ?? ($wins['Kiri'] ?? 0);
-$player2_wins = $wins['Player 2'] ?? ($wins['Kanan'] ?? 0);
+
+$player1_wins = 0;
+$player2_wins = 0;
+$total_draws = 0;
+
+foreach ($wins as $key => $count) {
+    if (strpos(strtoupper($key), 'PLAYER 1') !== false || strtoupper($key) == 'KIRI') {
+        $player1_wins += $count;
+    } elseif (strpos(strtoupper($key), 'PLAYER 2') !== false || strtoupper($key) == 'KANAN') {
+        $player2_wins += $count;
+    } elseif (strpos(strtoupper($key), 'DRAW') !== false || strtoupper($key) == 'SERI') {
+        $total_draws += $count;
+    }
+}
 
 // 4. Recent Games
 $query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
@@ -43,7 +55,8 @@ echo json_encode([
         'total_games' => $total_games,
         'total_users' => $total_users,
         'player1_wins' => $player1_wins,
-        'player2_wins' => $player2_wins
+        'player2_wins' => $player2_wins,
+        'total_draws' => $total_draws
     ],
     'recent_games' => $recent_games
 ]);

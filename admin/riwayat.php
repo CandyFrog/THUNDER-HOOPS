@@ -99,7 +99,7 @@ include '../includes/navbar.php';
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>
                         <?php if(!empty($search) || !empty($winner_filter)): ?>
-                            <a href="games.php" class="btn btn-light py-2 border">
+                            <a href="riwayat.php" class="btn btn-light py-2 border">
                                 <i class="bi bi-arrow-counterclockwise"></i>
                             </a>
                         <?php endif; ?>
@@ -126,6 +126,7 @@ include '../includes/navbar.php';
                             <th class="py-3">Skor Kanan</th>
                             <th class="py-3">Status Pemenang</th>
                             <th class="py-3">Durasi</th>
+                            <th class="py-3">Waktu</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -169,6 +170,9 @@ include '../includes/navbar.php';
                                 </td>
                                 <td>
                                     <span class="text-dark fw-bold"><i class="bi bi-lightning-charge-fill me-1 text-warning"></i><?php echo $game['durasi']; ?>s</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small"><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></span>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

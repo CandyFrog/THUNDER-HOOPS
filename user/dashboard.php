@@ -22,9 +22,19 @@ while($row = $result->fetch_assoc()) {
     $wins[$row['pemenang']] = $row['total'];
 }
 
-$player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kiri']) ? $wins['Kiri'] : 0);
-$player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
-$total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
+$player1_wins = 0;
+$player2_wins = 0;
+$total_draws = 0;
+
+foreach ($wins as $key => $count) {
+    if (strpos(strtoupper($key), 'PLAYER 1') !== false || strtoupper($key) == 'KIRI') {
+        $player1_wins += $count;
+    } elseif (strpos(strtoupper($key), 'PLAYER 2') !== false || strtoupper($key) == 'KANAN') {
+        $player2_wins += $count;
+    } elseif (strpos(strtoupper($key), 'DRAW') !== false || strtoupper($key) == 'SERI') {
+        $total_draws += $count;
+    }
+}
 
 // Get all games with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -122,7 +132,7 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?> detik</td>
-                                <td>-</td>
+                                <td><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

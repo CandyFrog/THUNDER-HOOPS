@@ -31,11 +31,19 @@ while($row = $result->fetch_assoc()) {
     $wins[$row['pemenang']] = $row['total'];
 }
 
-// Mapping pemenang (sesuaikan dengan data yang dikirim receive.php)
-// Jika receive.php mengirim 'Kiri'/'Kanan' atau 'Player 1'/'Player 2'
-$player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kiri']) ? $wins['Kiri'] : 0);
-$player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
-$total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
+$player1_wins = 0;
+$player2_wins = 0;
+$total_draws = 0;
+
+foreach ($wins as $key => $count) {
+    if (strpos(strtoupper($key), 'PLAYER 1') !== false || strtoupper($key) == 'KIRI') {
+        $player1_wins += $count;
+    } elseif (strpos(strtoupper($key), 'PLAYER 2') !== false || strtoupper($key) == 'KANAN') {
+        $player2_wins += $count;
+    } elseif (strpos(strtoupper($key), 'DRAW') !== false || strtoupper($key) == 'SERI') {
+        $total_draws += $count;
+    }
+}
 
 // Get recent games
 $query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
@@ -54,27 +62,33 @@ include '../includes/navbar.php';
     
     <!-- Statistics Cards -->
     <div id="stats-container">
-        <div class="row g-4 mb-4">
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
                     <div class="stats-label">Total Games</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-users"><?php echo $total_users; ?></div>
                     <div class="stats-label">Total Users</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
                     <div class="stats-label">Player 1 Wins</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
+                    <div class="stats-number" id="stat-total-draws"><?php echo $total_draws; ?></div>
+                    <div class="stats-label">Draws</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
                     <div class="stats-label">Player 2 Wins</div>
                 </div>
@@ -118,7 +132,7 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?>s</td>
-                                <td>-</td>
+                                <td><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -144,6 +158,7 @@ function refreshDashboard() {
                 document.getElementById('stat-total-users').innerText = data.stats.total_users;
                 document.getElementById('stat-player1-wins').innerText = data.stats.player1_wins;
                 document.getElementById('stat-player2-wins').innerText = data.stats.player2_wins;
+                document.getElementById('stat-total-draws').innerText = data.stats.total_draws;
 
                 // Update Table
                 const tbody = document.getElementById('recent-games-table');
@@ -154,6 +169,11 @@ function refreshDashboard() {
                         const badgeClass = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
                         const badgeText = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
                         
+                        // Format date
+                        const date = new Date(game.created_at);
+                        const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                                            date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
                         tableHtml += `
                             <tr>
                                 <td>#${game.id}</td>
@@ -161,7 +181,7 @@ function refreshDashboard() {
                                 <td><strong>${game.skor_kanan}</strong></td>
                                 <td><span class="${badgeClass}">${badgeText}</span></td>
                                 <td>${game.durasi}s</td>
-                                <td>-</td>
+                                <td>${formattedDate}</td>
                             </tr>
                         `;
                     });

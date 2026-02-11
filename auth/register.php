@@ -49,7 +49,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param("sss", $username, $hashed_password, $full_name);
             
             if($stmt->execute()) {
-                $success = 'Registrasi berhasil! Silakan login.';
+                // Auto login
+                $_SESSION['user_id'] = $stmt->insert_id;
+                $_SESSION['username'] = $username;
+                $_SESSION['full_name'] = $full_name;
+                $_SESSION['role'] = 'user';
+                
+                header("Location: ../user/dashboard.php");
+                exit();
             } else {
                 $error = 'Terjadi kesalahan. Silakan coba lagi.';
             }
