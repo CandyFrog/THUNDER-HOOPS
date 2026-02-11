@@ -34,7 +34,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 $message = "Durasi pertandingan berhasil diperbarui!";
                 $message_type = "success";
+            } else {
+                if ($is_ajax) {
+                    ob_clean();
+                    echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan ke database: ' . $conn->error]);
+                    exit();
+                }
+                $message = "Gagal menyimpan ke database!";
+                $message_type = "danger";
             }
+        } else {
+            if ($is_ajax) {
+                ob_clean();
+                echo json_encode(['status' => 'error', 'message' => 'Durasi harus lebih dari 0 detik!']);
+                exit();
+            }
+            $message = "Durasi harus lebih dari 0 detik!";
+            $message_type = "warning";
         }
     } elseif (isset($_POST['game_command'])) {
         $cmd = $_POST['game_command'];
@@ -89,7 +105,7 @@ include '../includes/navbar.php';
                     <span class="fw-bold"><i class="bi bi-clock-history me-2 text-peach"></i>Durasi Pertandingan</span>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" action="" class="form-ajax-settings">
+                    <form method="POST" action="" class="form-ajax-settings no-auto-loading">
                         <div class="mb-4">
                             <label for="match_duration" class="form-label small fw-bold text-muted mb-2">Lama Waktu (Detik)</label>
                             <div class="input-group">
@@ -179,13 +195,13 @@ include '../includes/navbar.php';
 document.querySelector('.form-ajax-settings').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-save');
-    const btnText = document.getElementById('btn-text');
+    const originalBtnHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+
     const formData = new FormData(this);
     formData.append('ajax', '1');
     formData.append('update_duration', '1');
-
-    btn.disabled = true;
-    btnText.innerText = 'Menyimpan...';
 
     fetch('pengaturan.php', {
         method: 'POST',
@@ -201,24 +217,25 @@ document.querySelector('.form-ajax-settings').addEventListener('submit', functio
         }
     })
     .then(data => {
-        btn.disabled = false;
-        btnText.innerText = 'Simpan Perubahan';
-        
         Swal.fire({
             title: data.status === 'success' ? 'Berhasil!' : 'Gagal!',
             text: data.message,
             icon: data.status,
             confirmButtonColor: '#ff9a9e'
+        }).then(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHTML;
         });
     })
     .catch(error => {
-        btn.disabled = false;
-        btnText.innerText = 'Simpan Perubahan';
         Swal.fire({
             title: 'Error!',
             text: error.message,
             icon: 'error',
             confirmButtonColor: '#ff9a9e'
+        }).then(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHTML;
         });
     });
 });

@@ -33,10 +33,12 @@ function confirmDelete(message) {
 
 // Show loading spinner on form submit
 document.querySelectorAll('form').forEach(function(form) {
-    form.addEventListener('submit', function() {
+    form.addEventListener('submit', function(e) {
+        // Skip auto loading if form has 'no-auto-loading' class or event is prevented
+        if (form.classList.contains('no-auto-loading') || e.defaultPrevented) return;
+
         const submitBtn = form.querySelector('button[type="submit"]');
         if(submitBtn) {
-            const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
             submitBtn.disabled = true;
         }
