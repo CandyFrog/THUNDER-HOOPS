@@ -7,6 +7,6 @@
         </p>
     </footer>
     
-    <script src="../assets/js/main.js?v=1.1"></script>
+    <script src="../assets/js/main.js?v=1.2"></script>
 </body>
 </html>
