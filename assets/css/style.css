@@ -280,19 +280,19 @@ body {
     .navbar-custom {
         padding: 1rem;
     }
-    
+
     .stats-number {
         font-size: 2rem;
     }
-    
+
     .auth-card {
         padding: 2rem;
     }
-    
+
     .container-custom {
         padding: 1rem;
     }
-    
+
     .page-title {
         font-size: 2rem;
     }
@@ -309,8 +309,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Alert Custom */
@@ -318,4 +323,32 @@ body {
     border-radius: 15px;
     border: none;
     padding: 1rem 1.5rem;
+}
+
+/* Password Toggle */
+.password-field-container {
+    position: relative !important;
+    width: 100%;
+    display: block;
+}
+
+.password-field-container input {
+    padding-right: 45px !important;
+}
+
+.password-toggle {
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    cursor: pointer;
+    color: var(--primary-peach);
+    z-index: 99 !important;
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.password-toggle:hover {
+    color: var(--text-dark);
 }

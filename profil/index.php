@@ -224,15 +224,24 @@ include '../includes/header.php';
                         <div class="row g-3">
                             <div class="col-12 text-start">
                                 <label class="form-label small fw-bold text-muted mb-1">Password Lama</label>
-                                <input type="password" name="old_password" class="form-control form-control-custom" placeholder="Masukkan password saat ini" required>
+                                <div class="password-field-container">
+                                    <input type="password" name="old_password" class="form-control form-control-custom" placeholder="Masukkan password saat ini" required>
+                                    <i class="bi bi-eye password-toggle"></i>
+                                </div>
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small fw-bold text-muted mb-1">Password Baru</label>
-                                <input type="password" name="new_password" class="form-control form-control-custom" placeholder="Min. 6 karakter" required>
+                                <div class="password-field-container">
+                                    <input type="password" name="new_password" class="form-control form-control-custom" placeholder="Min. 6 karakter" required>
+                                    <i class="bi bi-eye password-toggle"></i>
+                                </div>
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small fw-bold text-muted mb-1">Konfirmasi Password</label>
-                                <input type="password" name="confirm_password" class="form-control form-control-custom" placeholder="Ulangi password baru" required>
+                                <div class="password-field-container">
+                                    <input type="password" name="confirm_password" class="form-control form-control-custom" placeholder="Ulangi password baru" required>
+                                    <i class="bi bi-eye password-toggle"></i>
+                                </div>
                             </div>
                             <div class="col-12 mt-4">
                                 <button type="submit" class="btn btn-outline-peach px-4 py-2">

@@ -357,7 +357,10 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-control form-control-custom" name="password" required minlength="6">
+                        <div class="password-field-container">
+                            <input type="password" class="form-control form-control-custom" name="password" required minlength="6">
+                            <i class="bi bi-eye password-toggle"></i>
+                        </div>
                         <small class="text-muted">Minimal 6 karakter</small>
                     </div>
                     <div class="mb-3">
@@ -401,7 +404,10 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-control form-control-custom" name="password" id="edit_password" minlength="6">
+                        <div class="password-field-container">
+                            <input type="password" class="form-control form-control-custom" name="password" id="edit_password" minlength="6">
+                            <i class="bi bi-eye password-toggle"></i>
+                        </div>
                         <small class="text-muted">Kosongkan jika tidak ingin mengubah password</small>
                     </div>
                     <div class="mb-3">
