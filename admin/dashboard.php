@@ -46,7 +46,7 @@ foreach ($wins as $key => $count) {
 }
 
 // Get recent games
-$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
+$query = "SELECT * FROM match_data ORDER BY id ASC LIMIT 5";
 $result = $conn->query($query);
 $recent_games = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -110,8 +110,8 @@ include '../includes/navbar.php';
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Skor Kiri</th>
-                            <th>Skor Kanan</th>
+                            <th style="width: 15%; text-align: center;">Skor Kiri</th>
+                            <th style="width: 15%; text-align: center;">Skor Kanan</th>
                             <th>Pemenang</th>
                             <th>Durasi</th>
                             <th>Waktu</th>
@@ -122,8 +122,8 @@ include '../includes/navbar.php';
                             <?php foreach($recent_games as $game): ?>
                             <tr>
                                 <td>#<?php echo $game['id']; ?></td>
-                                <td><strong><?php echo $game['skor_kiri']; ?></strong></td>
-                                <td><strong><?php echo $game['skor_kanan']; ?></strong></td>
+                                <td class="text-center"><strong><?php echo $game['skor_kiri']; ?></strong></td>
+                                <td class="text-center"><strong><?php echo $game['skor_kanan']; ?></strong></td>
                                 <td>
                                     <?php if($game['pemenang'] == 'Draw' || $game['pemenang'] == 'Seri'): ?>
                                         <span class="badge-draw">Seri</span>
@@ -177,8 +177,8 @@ function refreshDashboard() {
                         tableHtml += `
                             <tr>
                                 <td>#${game.id}</td>
-                                <td><strong>${game.skor_kiri}</strong></td>
-                                <td><strong>${game.skor_kanan}</strong></td>
+                                <td class="text-center"><strong>${game.skor_kiri}</strong></td>
+                                <td class="text-center"><strong>${game.skor_kanan}</strong></td>
                                 <td><span class="${badgeClass}">${badgeText}</span></td>
                                 <td>${game.durasi}s</td>
                                 <td>${formattedDate}</td>

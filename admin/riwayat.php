@@ -122,8 +122,8 @@ include '../includes/navbar.php';
                         <tr>
                             <th class="ps-4 py-3" style="width: 80px;">No</th>
                             <th class="py-3">Match ID</th>
-                            <th class="py-3">Skor Kiri</th>
-                            <th class="py-3">Skor Kanan</th>
+                            <th class="py-3" style="width: 15%;">Skor Kiri</th>
+                            <th class="py-3" style="width: 15%;">Skor Kanan</th>
                             <th class="py-3">Status Pemenang</th>
                             <th class="py-3">Durasi</th>
                             <th class="py-3">Waktu</th>
