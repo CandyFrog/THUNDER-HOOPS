@@ -13,10 +13,19 @@ if(isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Generate CSRF token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error = '';
 $success = '';
 
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // CSRF check
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Request tidak valid. Silakan coba lagi.';
+    } else {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
@@ -40,21 +49,22 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = $stmt->get_result();
         
         if($result->num_rows > 0) {
-            $error = 'Username sudah digunakan!';
-        } else {
-            // Insert user baru
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, 'user')";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("sss", $username, $hashed_password, $full_name);
-            
-            if($stmt->execute()) {
-                $success = 'Registrasi berhasil! Silakan login.';
+                $error = 'Username sudah digunakan!';
             } else {
-                $error = 'Terjadi kesalahan. Silakan coba lagi.';
+                // Insert user baru
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, 'user')";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("sss", $username, $hashed_password, $full_name);
+                
+                if($stmt->execute()) {
+                    $success = 'Registrasi berhasil! Silakan login.';
+                } else {
+                    $error = 'Terjadi kesalahan. Silakan coba lagi.';
+                }
             }
         }
-    }
+    } // end CSRF else
 }
 ?>
 
@@ -94,6 +104,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
             
             <form method="POST" action="">
+                <?php echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token']) . '">'; ?>
                 <div class="mb-3">
                     <label for="full_name" class="form-label">Nama Lengkap</label>
                     <input type="text" class="form-control form-control-custom" id="full_name" name="full_name" required value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>">

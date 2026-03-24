@@ -443,9 +443,13 @@ if(isset($_SESSION['user_success'])) {
             </div>
             <div class="modal-footer" style="border: none;">
                 <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="confirmDeleteUserBtn" class="btn btn-danger">
-                    <i class="bi bi-trash"></i> Delete
-                </a>
+                <form method="POST" action="delete_user.php" id="deleteUserForm">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                    <input type="hidden" name="user_id" id="delete_user_id_input">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -478,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function deleteUser(userId, username) {
     document.getElementById('delete_user_name').textContent = username;
-    document.getElementById('confirmDeleteUserBtn').href = 'delete_user.php?id=' + userId;
+    document.getElementById('delete_user_id_input').value = userId;
     
     var deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
     deleteModal.show();
