@@ -9,12 +9,19 @@ if($_SESSION['role'] != 'admin') {
     exit();
 }
 
-if(isset($_GET['id'])) {
-    $user_id = (int)$_GET['id'];
+// CSRF check – require POST to avoid CSRF via GET link
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verify_csrf_token()) {
+    $_SESSION['user_error'] = 'Aksi tidak diizinkan!';
+    header("Location: users.php");
+    exit();
+}
+
+if(isset($_POST['user_id'])) {
+    $user_id = (int)$_POST['user_id'];
     
     // Prevent deleting own account
     if($user_id == $_SESSION['user_id']) {
-        $_SESSION['delete_error'] = 'Tidak bisa menghapus akun sendiri!';
+        $_SESSION['user_error'] = 'Tidak bisa menghapus akun sendiri!';
         header("Location: users.php");
         exit();
     }

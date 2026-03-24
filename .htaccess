@@ -1,6 +1,5 @@
 RewriteEngine On
 
-# Cek apakah koneksi dari luar (Cloudflare) sudah HTTPS atau belum
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteCond %{HTTPS} off
 RewriteCond %{REQUEST_URI} !^/thunder-hoops/api/ [NC]

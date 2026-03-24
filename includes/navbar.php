@@ -23,13 +23,33 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center gap-2" href="<?php echo $_SESSION['role'] == 'admin' ? $admin_path . 'dashboard.php' : $user_path . 'dashboard.php'; ?>">
             <img src="<?php echo $base_path; ?>assets/logo.png" alt="Logo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--primary-peach);">
-            <span>Basketball Arcade</span>
+            <span class="d-none d-sm-inline">Basketball Arcade</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center gap-1 gap-md-2 order-lg-last">
+            <div class="dropdown me-lg-2">
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" role="button" data-bs-toggle="dropdown">
+                    <img src="<?php echo $nav_photo; ?>" alt="Avatar" class="rounded-circle shadow-sm" style="width: 34px; height: 34px; object-fit: cover; border: 2px solid var(--primary-peach);">
+                    <span class="d-none d-lg-inline fw-bold text-dark small ms-1"><?php echo explode(' ', $res_nav['full_name'])[0]; ?></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3" style="border-radius: 15px; min-width: 220px;">
+                    <li class="px-3 py-3 border-bottom mb-2 bg-light rounded-top">
+                        <small class="text-muted d-block mb-1">Signed in as:</small>
+                        <span class="fw-bold text-dark d-block"><?php echo $res_nav['full_name']; ?></span>
+                        <span class="badge bg-peach-light text-peach small mt-1"><?php echo strtoupper($_SESSION['role']); ?></span>
+                    </li>
+                    <li><a class="dropdown-item py-2 px-3" href="<?php echo $profil_path; ?>index.php"><i class="bi bi-person-circle me-2 text-peach"></i> Profil Saya</a></li>
+                    <li><hr class="dropdown-divider mx-2"></li>
+                    <li><a class="dropdown-item text-danger py-2 px-3 fw-bold" href="<?php echo $auth_path; ?>logout.php"><i class="bi bi-box-arrow-right me-2"></i> Keluar</a></li>
+                </ul>
+            </div>
+
+            <button class="navbar-toggler shadow-none border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="width: 1.25rem; height: 1.25rem;"></span>
+            </button>
+        </div>
+
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
+            <ul class="navbar-nav me-auto align-items-lg-center mt-3 mt-lg-0">
                 <?php if($_SESSION['role'] == 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'dashboard.php' && $current_dir == 'admin' ? 'active' : ''; ?>" href="<?php echo $admin_path; ?>dashboard.php">
@@ -58,21 +78,6 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                     </a>
                 </li>
                 <?php endif; ?>
-                <li class="nav-item dropdown ms-lg-3">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="<?php echo $nav_photo; ?>" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover; border: 2px solid var(--primary-peach);">
-                        <span><?php echo explode(' ', $res_nav['full_name'])[0]; ?></span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; min-width: 200px;">
-                        <li class="px-3 py-2 border-bottom mb-2 bg-light rounded-top">
-                            <small class="text-muted d-block">Login sebagai:</small>
-                            <span class="fw-bold text-dark"><?php echo $res_nav['full_name']; ?></span>
-                        </li>
-                        <li><a class="dropdown-item py-2" href="<?php echo $profil_path; ?>index.php"><i class="bi bi-person me-2"></i> Profil Akun</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger py-2" href="<?php echo $auth_path; ?>logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
-                    </ul>
-                </li>
             </ul>
         </div>
     </div>

@@ -22,20 +22,20 @@ if(isset($_SESSION['user_id'])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <!-- Hero Section -->
     <div class="auth-container">
-        <div class="container">
+        <div class="container my-auto">
             <div class="row align-items-center">
-                <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="col-lg-6 mb-4 mb-lg-0">
                     <div class="text-center text-lg-start">
-                        <h1 style="font-size: 3.5rem; font-weight: 800; color: var(--text-dark); line-height: 1.2;">
+                        <h1 class="hero-title">
                             🏀 Basketball<br>
                             <span style="color: var(--primary-peach);">Arcade System</span>
                         </h1>
-                        <p style="font-size: 1.2rem; color: var(--text-dark); margin-top: 1.5rem; margin-bottom: 2rem;">
+                        <p class="hero-subtitle">
                             Sistem IoT untuk mengelola permainan basketball arcade dengan monitoring real-time dan statistik lengkap.
                         </p>
                         <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
@@ -50,12 +50,12 @@ if(isset($_SESSION['user_id'])) {
                 </div>
                 <div class="col-lg-6">
                     <div class="text-center">
-                        <div style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 30px; padding: 3rem; box-shadow: 0 20px 60px rgba(232, 167, 150, 0.3);">
-                            <img src="assets/logo.png" alt="Logo" class="rounded-circle shadow mb-4" style="width: 150px; height: 150px; object-fit: cover; border: 5px solid var(--primary-peach);">
-                            <h3 style="color: var(--text-dark); margin-top: 1rem; font-weight: 700;">
+                        <div class="track-card">
+                            <img src="assets/logo.png" alt="Logo" class="rounded-circle shadow mb-3 track-logo">
+                            <h3 style="color: var(--text-dark); margin-top: 0.5rem; font-weight: 700;">
                                 Track Your Games
                             </h3>
-                            <p style="color: var(--text-dark);">
+                            <p style="color: var(--text-dark); margin-bottom: 0;">
                                 Monitor statistik, score, dan history permainan dengan mudah
                             </p>
                         </div>
@@ -64,26 +64,26 @@ if(isset($_SESSION['user_id'])) {
             </div>
             
             <!-- Features -->
-            <div class="row mt-5 g-4">
+            <div class="row mt-4 g-3">
                 <div class="col-md-4">
                     <div class="stats-card">
-                        <i class="bi bi-speedometer2" style="font-size: 3rem; color: var(--primary-peach);"></i>
-                        <h5 class="mt-3" style="color: var(--text-dark); font-weight: 600;">Real-time Monitoring</h5>
-                        <p style="color: var(--text-dark); margin: 0;">Monitor permainan secara langsung</p>
+                        <i class="bi bi-speedometer2 feature-icon"></i>
+                        <h5 class="feature-title">Real-time Monitoring</h5>
+                        <p class="feature-desc">Monitor permainan secara langsung</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-card">
-                        <i class="bi bi-graph-up" style="font-size: 3rem; color: var(--primary-peach);"></i>
-                        <h5 class="mt-3" style="color: var(--text-dark); font-weight: 600;">Statistik Lengkap</h5>
-                        <p style="color: var(--text-dark); margin: 0;">Analisis data permainan detail</p>
+                        <i class="bi bi-graph-up feature-icon"></i>
+                        <h5 class="feature-title">Statistik Lengkap</h5>
+                        <p class="feature-desc">Analisis data permainan detail</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-card">
-                        <i class="bi bi-shield-check" style="font-size: 3rem; color: var(--primary-peach);"></i>
-                        <h5 class="mt-3" style="color: var(--text-dark); font-weight: 600;">Secure & Reliable</h5>
-                        <p style="color: var(--text-dark); margin: 0;">Data aman dan terpercaya</p>
+                        <i class="bi bi-shield-check feature-icon"></i>
+                        <h5 class="feature-title">Secure & Reliable</h5>
+                        <p class="feature-desc">Data aman dan terpercaya</p>
                     </div>
                 </div>
             </div>

@@ -3,18 +3,14 @@
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-
-
 $page_title = "User Dashboard - Basketball Arcade";
-
-// Database connection is already established in config/koneksi.php
 
 // Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
 
-// Statistik Pemenang (Asumsi data dari receive.php)
+// Statistik Pemenang
 $query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
 $wins = [];
@@ -63,27 +59,26 @@ include '../includes/navbar.php';
         <p class="page-subtitle">Selamat datang, <?php echo $_SESSION['full_name']; ?>! 🎮</p>
     </div>
     
-    <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $total_games; ?></div>
                 <div class="stats-label">Total Games</div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $player1_wins; ?></div>
                 <div class="stats-label">Player 1 Wins</div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $player2_wins; ?></div>
                 <div class="stats-label">Player 2 Wins</div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $total_draws; ?></div>
                 <div class="stats-label">Draws</div>
@@ -91,7 +86,6 @@ include '../includes/navbar.php';
         </div>
     </div>
     
-    <!-- Game History -->
     <div class="card card-custom">
         <div class="card-header-custom">
             <i class="bi bi-clock-history"></i> Game History
@@ -147,7 +141,6 @@ include '../includes/navbar.php';
                 </table>
             </div>
             
-            <!-- Pagination -->
             <?php if($total_pages > 1): ?>
             <div class="p-3">
                 <nav>
