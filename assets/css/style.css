@@ -176,6 +176,38 @@ body {
     font-weight: 500;
 }
 
+/* Landing Page Cards */
+.track-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 3rem;
+    box-shadow: 0 20px 60px rgba(232, 167, 150, 0.3);
+}
+
+.track-logo {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 5px solid var(--primary-peach);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--primary-peach);
+}
+
+.feature-title {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.feature-desc {
+    color: var(--text-dark);
+    margin: 0;
+}
+
 /* Table Custom */
 .table-custom {
     background: white;
@@ -228,8 +260,6 @@ body {
 .auth-container {
     min-height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 2rem;
 }
 
@@ -241,6 +271,7 @@ body {
     box-shadow: 0 20px 60px rgba(232, 167, 150, 0.3);
     max-width: 450px;
     width: 100%;
+    margin: auto;
 }
 
 .auth-title {
@@ -255,6 +286,13 @@ body {
     color: var(--text-dark);
     text-align: center;
     margin-bottom: 2rem;
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 3px solid var(--primary-peach);
 }
 
 /* Container Custom */
@@ -277,6 +315,20 @@ body {
     margin-bottom: 2rem;
 }
 
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-dark);
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .navbar-custom {
@@ -287,8 +339,23 @@ body {
         font-size: 2rem;
     }
 
+    .auth-container {
+        padding: 1rem;
+    }
+
     .auth-card {
-        padding: 2rem;
+        padding: 2.5rem 2rem;
+        margin: auto !important;
+        border-radius: 30px;
+    }
+
+    .auth-title {
+        font-size: 1.8rem;
+    }
+
+    .auth-logo {
+        width: 70px;
+        height: 70px;
     }
 
     .container-custom {
@@ -297,6 +364,52 @@ body {
 
     .page-title {
         font-size: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .track-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .track-logo {
+        width: 100px;
+        height: 100px;
+        border-width: 3px;
+    }
+
+    .track-card h3 {
+        font-size: 1.4rem;
+    }
+    
+    .track-card p {
+        font-size: 0.9rem;
+    }
+
+    .stats-card {
+        padding: 1.25rem;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+    }
+    
+    .feature-title {
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .feature-desc {
+        font-size: 0.9rem;
     }
 }
 

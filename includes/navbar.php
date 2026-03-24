@@ -23,7 +23,7 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center gap-2" href="<?php echo $_SESSION['role'] == 'admin' ? $admin_path . 'dashboard.php' : $user_path . 'dashboard.php'; ?>">
             <img src="<?php echo $base_path; ?>assets/logo.png" alt="Logo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--primary-peach);">
-            <span>Basketball Arcade</span>
+            <span class="d-none d-sm-inline">Basketball Arcade</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>

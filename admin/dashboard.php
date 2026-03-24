@@ -55,25 +55,25 @@ include '../includes/navbar.php';
     <!-- Statistics Cards -->
     <div id="stats-container">
         <div class="row g-4 mb-4">
-            <div class="col-md-3 col-sm-6">
+            <div class="col-6 col-sm-6 col-md-3">
                 <div class="stats-card">
                     <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
                     <div class="stats-label">Total Games</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-6 col-sm-6 col-md-3">
                 <div class="stats-card">
                     <div class="stats-number" id="stat-total-users"><?php echo $total_users; ?></div>
                     <div class="stats-label">Total Users</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-6 col-sm-6 col-md-3">
                 <div class="stats-card">
                     <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
                     <div class="stats-label">Player 1 Wins</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-6 col-sm-6 col-md-3">
                 <div class="stats-card">
                     <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
                     <div class="stats-label">Player 2 Wins</div>
