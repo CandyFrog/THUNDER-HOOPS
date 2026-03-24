@@ -122,7 +122,7 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?> detik</td>
-                                <td>-</td>
+                                <td><small class="text-muted"><?php echo date('d M Y, H:i', strtotime($game['created_at'])); ?></small></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

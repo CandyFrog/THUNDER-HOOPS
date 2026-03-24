@@ -118,7 +118,7 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?>s</td>
-                                <td>-</td>
+                                <td><small class="text-muted"><?php echo date('d M Y, H:i', strtotime($game['created_at'])); ?></small></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -161,7 +161,7 @@ function refreshDashboard() {
                                 <td class="text-center"><strong>${game.skor_kanan}</strong></td>
                                 <td><span class="${badgeClass}">${badgeText}</span></td>
                                 <td>${game.durasi}s</td>
-                                <td>-</td>
+                                <td><small class="text-muted">${game.created_at}</small></td>
                             </tr>
                         `;
                     });
