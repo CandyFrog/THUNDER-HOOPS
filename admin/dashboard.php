@@ -5,13 +5,11 @@ require_once '../config/koneksi.php';
 
 // Check if admin
 if($_SESSION['role'] != 'admin') {
-    header("Location: ../auth/login.php"); // Or unauthorized page? Login is fine.
+    header("Location: ../auth/login.php");
     exit();
 }
 
 $page_title = "Admin Dashboard - Basketball Arcade";
-
-// Connection is already established in config/koneksi.php
 
 // Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
@@ -22,8 +20,7 @@ $query = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
 $result = $conn->query($query);
 $total_users = $result->fetch_assoc()['total'];
 
-// Statistik Pemenang (Asumsi data dari receive.php)
-// Kita hitung jumlah kemenangan masing-masing
+// Statistik Pemenang
 $query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
 $wins = [];
@@ -31,14 +28,22 @@ while($row = $result->fetch_assoc()) {
     $wins[$row['pemenang']] = $row['total'];
 }
 
-// Mapping pemenang (sesuaikan dengan data yang dikirim receive.php)
-// Jika receive.php mengirim 'Kiri'/'Kanan' atau 'Player 1'/'Player 2'
-$player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kiri']) ? $wins['Kiri'] : 0);
-$player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
-$total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
+$player1_wins = 0;
+$player2_wins = 0;
+$total_draws = 0;
+
+foreach ($wins as $key => $count) {
+    if (strpos(strtoupper($key), 'PLAYER 1') !== false || strtoupper($key) == 'KIRI') {
+        $player1_wins += $count;
+    } elseif (strpos(strtoupper($key), 'PLAYER 2') !== false || strtoupper($key) == 'KANAN') {
+        $player2_wins += $count;
+    } elseif (strpos(strtoupper($key), 'DRAW') !== false || strtoupper($key) == 'SERI') {
+        $total_draws += $count;
+    }
+}
 
 // Get recent games
-$query = "SELECT * FROM match_data ORDER BY id ASC LIMIT 5";
+$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
 $result = $conn->query($query);
 $recent_games = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -52,29 +57,34 @@ include '../includes/navbar.php';
         <p class="page-subtitle">Selamat datang kembali, <?php echo $_SESSION['full_name']; ?>! 👋</p>
     </div>
     
-    <!-- Statistics Cards -->
     <div id="stats-container">
-        <div class="row g-4 mb-4">
-            <div class="col-6 col-sm-6 col-md-3">
-                <div class="stats-card">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
                     <div class="stats-label">Total Games</div>
                 </div>
             </div>
-            <div class="col-6 col-sm-6 col-md-3">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-users"><?php echo $total_users; ?></div>
                     <div class="stats-label">Total Users</div>
                 </div>
             </div>
-            <div class="col-6 col-sm-6 col-md-3">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
                     <div class="stats-label">Player 1 Wins</div>
                 </div>
             </div>
-            <div class="col-6 col-sm-6 col-md-3">
-                <div class="stats-card">
+            <div class="col">
+                <div class="stats-card h-100">
+                    <div class="stats-number" id="stat-total-draws"><?php echo $total_draws; ?></div>
+                    <div class="stats-label">Draws</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
                     <div class="stats-label">Player 2 Wins</div>
                 </div>
@@ -82,7 +92,6 @@ include '../includes/navbar.php';
         </div>
     </div>
     
-    <!-- Recent Games -->
     <div class="card card-custom">
         <div class="card-header-custom d-flex justify-content-between align-items-center">
             <span><i class="bi bi-clock-history"></i> Recent Games</span>
@@ -118,7 +127,7 @@ include '../includes/navbar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $game['durasi']; ?>s</td>
-                                <td><small class="text-muted"><?php echo date('d M Y, H:i', strtotime($game['created_at'])); ?></small></td>
+                                <td><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -139,13 +148,12 @@ function refreshDashboard() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Update Stats
                 document.getElementById('stat-total-games').innerText = data.stats.total_games;
                 document.getElementById('stat-total-users').innerText = data.stats.total_users;
                 document.getElementById('stat-player1-wins').innerText = data.stats.player1_wins;
                 document.getElementById('stat-player2-wins').innerText = data.stats.player2_wins;
+                document.getElementById('stat-total-draws').innerText = data.stats.total_draws;
 
-                // Update Table
                 const tbody = document.getElementById('recent-games-table');
                 let tableHtml = '';
                 
@@ -154,6 +162,10 @@ function refreshDashboard() {
                         const badgeClass = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
                         const badgeText = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
                         
+                        const date = new Date(game.created_at);
+                        const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                                            date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
                         tableHtml += `
                             <tr>
                                 <td>#${game.id}</td>
@@ -161,7 +173,7 @@ function refreshDashboard() {
                                 <td class="text-center"><strong>${game.skor_kanan}</strong></td>
                                 <td><span class="${badgeClass}">${badgeText}</span></td>
                                 <td>${game.durasi}s</td>
-                                <td><small class="text-muted">${game.created_at}</small></td>
+                                <td>${formattedDate}</td>
                             </tr>
                         `;
                     });
@@ -169,7 +181,6 @@ function refreshDashboard() {
                     tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data game</td></tr>';
                 }
                 
-                // Only update if HTML changed to avoid flickering
                 if (tbody.innerHTML !== tableHtml) {
                     tbody.innerHTML = tableHtml;
                 }
@@ -177,8 +188,6 @@ function refreshDashboard() {
         })
         .catch(error => console.error('Error refreshing dashboard:', error));
 }
-
-// Poll every 5 seconds
 setInterval(refreshDashboard, 5000);
 </script>
 

@@ -26,29 +26,29 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         $error = 'Request tidak valid. Silakan coba lagi.';
     } else {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-    $full_name = trim($_POST['full_name']);
-    
-    // Validasi
-    if(empty($username) || empty($password) || empty($confirm_password) || empty($full_name)) {
-        $error = 'Semua field harus diisi!';
-    } elseif(strlen($username) < 4) {
-        $error = 'Username minimal 4 karakter!';
-    } elseif(strlen($password) < 6) {
-        $error = 'Password minimal 6 karakter!';
-    } elseif($password !== $confirm_password) {
-        $error = 'Password dan konfirmasi password tidak cocok!';
-    } else {
-        // Cek username sudah ada atau belum
-        $query = "SELECT id FROM users WHERE username = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $username = trim($_POST['username']);
+        $password = $_POST['password'];
+        $confirm_password = $_POST['confirm_password'];
+        $full_name = trim($_POST['full_name']);
         
-        if($result->num_rows > 0) {
+        // Validasi
+        if(empty($username) || empty($password) || empty($confirm_password) || empty($full_name)) {
+            $error = 'Semua field harus diisi!';
+        } elseif(strlen($username) < 4) {
+            $error = 'Username minimal 4 karakter!';
+        } elseif(strlen($password) < 6) {
+            $error = 'Password minimal 6 karakter!';
+        } elseif($password !== $confirm_password) {
+            $error = 'Password dan konfirmasi password tidak cocok!';
+        } else {
+            // Cek username sudah ada atau belum
+            $query = "SELECT id FROM users WHERE username = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if($result->num_rows > 0) {
                 $error = 'Username sudah digunakan!';
             } else {
                 // Insert user baru
@@ -58,9 +58,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->bind_param("sss", $username, $hashed_password, $full_name);
                 
                 if($stmt->execute()) {
-                    $success = 'Registrasi berhasil! Silakan login.';
+                    // Kita ambil fitur AUTO-LOGIN dari branch main agar UX lebih baik
+                    $_SESSION['user_id'] = $stmt->insert_id;
+                    $_SESSION['username'] = $username;
+                    $_SESSION['full_name'] = $full_name;
+                    $_SESSION['role'] = 'user';
+                    
+                    header("Location: ../user/dashboard.php");
+                    exit();
                 } else {
-                    $error = 'Terjadi kesalahan. Silakan coba lagi.';
+                    $error = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
                 }
             }
         }
@@ -104,7 +111,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
             
             <form method="POST" action="">
-                <?php echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token']) . '">'; ?>
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
                 <div class="mb-3">
                     <label for="full_name" class="form-label">Nama Lengkap</label>
                     <input type="text" class="form-control form-control-custom" id="full_name" name="full_name" required value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>">
