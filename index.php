@@ -1,8 +1,6 @@
 <?php
-// index.php
 session_start();
 
-// Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
     if($_SESSION['role'] == 'admin') {
         header("Location: admin/dashboard.php");
@@ -17,7 +15,7 @@ if(isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basketball Arcade - IoT System</title>
+    <title>Sistem IoT Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -25,25 +23,24 @@ if(isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
-    <!-- Hero Section -->
     <div class="auth-container">
         <div class="container my-auto">
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 mb-lg-0">
                     <div class="text-center text-lg-start">
                         <h1 class="hero-title">
-                            🏀 Basketball<br>
-                            <span style="color: var(--primary-peach);">Arcade System</span>
+                            🏀 Basket<br>
+                            <span style="color: var(--primary-peach);">Sistem Arcade</span>
                         </h1>
                         <p class="hero-subtitle">
-                            Sistem IoT untuk mengelola permainan basketball arcade dengan monitoring real-time dan statistik lengkap.
+                            Sistem IoT untuk mengelola permainan basket arcade dengan pemantauan real-time dan statistik lengkap.
                         </p>
                         <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
                             <a href="auth/login.php" class="btn btn-peach btn-lg">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
+                                <i class="bi bi-box-arrow-in-right"></i> Masuk
                             </a>
                             <a href="auth/register.php" class="btn btn-outline-peach btn-lg">
-                                <i class="bi bi-person-plus"></i> Register
+                                <i class="bi bi-person-plus"></i> Daftar
                             </a>
                         </div>
                     </div>
@@ -53,36 +50,35 @@ if(isset($_SESSION['user_id'])) {
                         <div class="track-card">
                             <img src="assets/logo.png" alt="Logo" class="rounded-circle shadow mb-3 track-logo">
                             <h3 style="color: var(--text-dark); margin-top: 0.5rem; font-weight: 700;">
-                                Track Your Games
+                                Pantau Permainan Anda
                             </h3>
                             <p style="color: var(--text-dark); margin-bottom: 0;">
-                                Monitor statistik, score, dan history permainan dengan mudah
+                                Pantau statistik, skor, dan riwayat permainan dengan mudah
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Features -->
             <div class="row mt-4 g-3">
                 <div class="col-md-4">
                     <div class="stats-card">
                         <i class="bi bi-speedometer2 feature-icon"></i>
-                        <h5 class="feature-title">Real-time Monitoring</h5>
-                        <p class="feature-desc">Monitor permainan secara langsung</p>
+                        <h5 class="feature-title">Pemantauan Real-time</h5>
+                        <p class="feature-desc">Pantau permainan secara langsung</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-card">
                         <i class="bi bi-graph-up feature-icon"></i>
                         <h5 class="feature-title">Statistik Lengkap</h5>
-                        <p class="feature-desc">Analisis data permainan detail</p>
+                        <p class="feature-desc">Analisis data permainan secara detail</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-card">
                         <i class="bi bi-shield-check feature-icon"></i>
-                        <h5 class="feature-title">Secure & Reliable</h5>
+                        <h5 class="feature-title">Aman & Terpercaya</h5>
                         <p class="feature-desc">Data aman dan terpercaya</p>
                     </div>
                 </div>
@@ -92,7 +88,7 @@ if(isset($_SESSION['user_id'])) {
     
     <footer class="text-center py-4">
         <p class="mb-0" style="color: var(--text-dark);">
-            &copy; <?php echo date('Y'); ?> Basketball Arcade IoT System. Made with <i class="bi bi-heart-fill" style="color: var(--primary-peach);"></i>
+            &copy; <?php echo date('Y'); ?> Sistem IoT Basketball Arcade. Dibuat dengan <i class="bi bi-heart-fill" style="color: var(--primary-peach);"></i>
         </p>
     </footer>
     

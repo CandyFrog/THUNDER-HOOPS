@@ -1,5 +1,4 @@
 <?php
-// profil/index.php
 ob_start();
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
@@ -11,17 +10,14 @@ $swal_title = '';
 $swal_text = '';
 $swal_icon = '';
 
-// Ambil data user
 $query = "SELECT * FROM users WHERE id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
-// Folder Penyimpanan Foto
 $upload_dir = '../assets/foto_profil/';
 
-// Handle Hapus Foto
 if (isset($_POST['delete_photo'])) {
     if (!empty($user['foto_profil']) && file_exists($upload_dir . $user['foto_profil'])) {
         @unlink($upload_dir . $user['foto_profil']);
@@ -38,7 +34,6 @@ if (isset($_POST['delete_photo'])) {
     }
 }
 
-// Ambil pesan dari session jika ada (setelah redirect)
 if (isset($_SESSION['user_success'])) {
     $swal_title = 'Berhasil!';
     $swal_text = $_SESSION['user_success'];
@@ -51,18 +46,15 @@ if (isset($_SESSION['user_success'])) {
     unset($_SESSION['user_error']);
 }
 
-// Handle Update Profil & Upload Cropped Photo
 if (isset($_POST['update_profile'])) {
     $full_name = trim($_POST['full_name']);
     
-    // Update Nama
     $query = "UPDATE users SET full_name = ? WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("si", $full_name, $user_id);
     $stmt->execute();
     $_SESSION['full_name'] = $full_name;
 
-    // Handle Cropped Image (Base64)
     if (!empty($_POST['cropped_image'])) {
         $data = $_POST['cropped_image'];
         
@@ -98,7 +90,6 @@ if (isset($_POST['update_profile'])) {
     exit;
 }
 
-// Handle Ganti Password
 if (isset($_POST['change_password'])) {
     $old_password = $_POST['old_password'];
     $new_password = $_POST['new_password'];
@@ -114,29 +105,28 @@ if (isset($_POST['change_password'])) {
                 
                 if ($stmt->execute()) {
                     $swal_title = 'Berhasil!';
-                    $swal_text = 'Password berhasil diubah!';
+                    $swal_text = 'Kata sandi berhasil diubah!';
                     $swal_icon = 'success';
                 }
             } else {
                 $swal_title = 'Gagal!';
-                $swal_text = 'Password baru minimal 6 karakter!';
+                $swal_text = 'Kata sandi baru minimal 6 karakter!';
                 $swal_icon = 'error';
             }
         } else {
             $swal_title = 'Gagal!';
-            $swal_text = 'Konfirmasi password tidak cocok!';
+            $swal_text = 'Konfirmasi kata sandi tidak cocok!';
             $swal_icon = 'error';
         }
     } else {
         $swal_title = 'Gagal!';
-        $swal_text = 'Password lama salah!';
+        $swal_text = 'Kata sandi lama salah!';
         $swal_icon = 'error';
     }
 }
 
 include '../includes/header.php';
 ?>
-<!-- Cropper.js CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 
 <?php include '../includes/navbar.php'; ?>
@@ -144,18 +134,17 @@ include '../includes/header.php';
 <div class="container-custom mt-4">
     <div class="mb-4">
         <h1 class="page-title">Profil Akun</h1>
-        <p class="page-subtitle">Kelola informasi data diri dan foto profil abang</p>
+        <p class="page-subtitle">Kelola informasi data diri dan foto profil Anda</p>
     </div>
 
     <div class="row">
-        <!-- Sidebar: Foto Profil -->
         <div class="col-lg-4 mb-4">
             <div class="card card-custom shadow-sm text-center p-4 h-100">
                 <div class="mb-3 position-relative d-inline-block mx-auto">
                     <?php 
                     $foto = !empty($user['foto_profil']) ? '../assets/foto_profil/' . $user['foto_profil'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name']) . '&background=E8A796&color=fff&size=128';
                     ?>
-                    <img src="<?php echo $foto; ?>" alt="Profile" class="rounded-circle shadow" id="profileDisplay" style="width: 160px; height: 160px; object-fit: cover; border: 5px solid white;">
+                    <img src="<?php echo $foto; ?>" alt="Profil" class="rounded-circle shadow" id="profileDisplay" style="width: 160px; height: 160px; object-fit: cover; border: 5px solid white;">
                 </div>
                 
                 <h4 class="fw-bold mb-1 mt-2"><?php echo htmlspecialchars($user['full_name']); ?></h4>
@@ -184,7 +173,6 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <!-- Form Updates -->
         <div class="col-lg-8">
             <div class="card card-custom shadow-sm mb-4">
                 <div class="card-header bg-white py-3 border-bottom-0">
@@ -223,29 +211,29 @@ include '../includes/header.php';
                         <input type="hidden" name="change_password" value="1">
                         <div class="row g-3">
                             <div class="col-12 text-start">
-                                <label class="form-label small fw-bold text-muted mb-1">Password Lama</label>
+                                <label class="form-label small fw-bold text-muted mb-1">Kata Sandi Lama</label>
                                 <div class="password-field-container">
-                                    <input type="password" name="old_password" class="form-control form-control-custom" placeholder="Masukkan password saat ini" required>
+                                    <input type="password" name="old_password" class="form-control form-control-custom" placeholder="Masukkan kata sandi saat ini" required>
                                     <i class="bi bi-eye password-toggle"></i>
                                 </div>
                             </div>
                             <div class="col-md-6 text-start">
-                                <label class="form-label small fw-bold text-muted mb-1">Password Baru</label>
+                                <label class="form-label small fw-bold text-muted mb-1">Kata Sandi Baru</label>
                                 <div class="password-field-container">
                                     <input type="password" name="new_password" class="form-control form-control-custom" placeholder="Min. 6 karakter" required>
                                     <i class="bi bi-eye password-toggle"></i>
                                 </div>
                             </div>
                             <div class="col-md-6 text-start">
-                                <label class="form-label small fw-bold text-muted mb-1">Konfirmasi Password</label>
+                                <label class="form-label small fw-bold text-muted mb-1">Konfirmasi Kata Sandi</label>
                                 <div class="password-field-container">
-                                    <input type="password" name="confirm_password" class="form-control form-control-custom" placeholder="Ulangi password baru" required>
+                                    <input type="password" name="confirm_password" class="form-control form-control-custom" placeholder="Ulangi kata sandi baru" required>
                                     <i class="bi bi-eye password-toggle"></i>
                                 </div>
                             </div>
                             <div class="col-12 mt-4">
                                 <button type="submit" class="btn btn-outline-peach px-4 py-2">
-                                    <i class="bi bi-key me-1"></i> Ganti Password
+                                    <i class="bi bi-key me-1"></i> Ganti Kata Sandi
                                 </button>
                             </div>
                         </div>
@@ -256,7 +244,6 @@ include '../includes/header.php';
     </div>
 </div>
 
-<!-- Modal Crop -->
 <div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
@@ -280,7 +267,6 @@ include '../includes/header.php';
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -301,14 +287,12 @@ include '../includes/header.php';
                 if (files && files.length > 0) {
                     const file = files[0];
                     
-                    // Validasi Ukuran (20MB)
                     if (file.size > 20 * 1024 * 1024) {
-                        Swal.fire('Gagal!', 'Ukuran foto maksimal 20MB bang!', 'warning');
+                        Swal.fire('Gagal!', 'Ukuran foto maksimal 20MB!', 'warning');
                         inputPhoto.value = '';
                         return;
                     }
 
-                    // Validasi Tipe
                     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
                         Swal.fire('Gagal!', 'Format file harus JPG, PNG, atau WEBP ya!', 'warning');
                         inputPhoto.value = '';
@@ -361,7 +345,6 @@ include '../includes/header.php';
                 croppedImageData.value = canvas.toDataURL('image/jpeg', 0.9);
                 cropModal.hide();
                 
-                // Langsung submit form
                 profileForm.submit();
             });
         }

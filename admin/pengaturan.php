@@ -1,11 +1,9 @@
 <?php
 ob_start();
-// admin/pengaturan.php
 
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-// Check if admin
 if($_SESSION['role'] != 'admin') {
     header("Location: ../auth/login.php");
     exit();
@@ -15,7 +13,6 @@ $page_title = "Pengaturan - Basketball Arcade";
 $message = "";
 $message_type = "";
 
-// Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == 1;
 
@@ -69,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Get current duration
 $query = "SELECT value FROM settings WHERE name = 'match_duration'";
 $result = $conn->query($query);
 $settings = $result->fetch_assoc();
@@ -79,7 +75,6 @@ include '../includes/header.php';
 include '../includes/navbar.php';
 ?>
 
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-custom mt-4">
@@ -126,7 +121,6 @@ include '../includes/navbar.php';
                 </div>
             </div>
 
-            <!-- Kontrol Game Interaktif -->
             <div class="card card-custom shadow-sm border-0 mt-4">
                 <div class="card-header-custom p-3 bg-white border-bottom">
                     <span class="fw-bold"><i class="bi bi-controller me-2 text-peach"></i>Kontrol Langsung</span>
@@ -191,7 +185,6 @@ include '../includes/navbar.php';
 </div>
 
 <script>
-// Handle Update Durasi
 document.querySelector('.form-ajax-settings').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-save');
@@ -240,7 +233,6 @@ document.querySelector('.form-ajax-settings').addEventListener('submit', functio
     });
 });
 
-// Handle Game Commands (Start/Reset)
 function sendGameCommand(cmd) {
     const formData = new FormData();
     formData.append('ajax', '1');
@@ -263,7 +255,6 @@ function sendGameCommand(cmd) {
             timerProgressBar: true
         });
         
-        // Update badge status di UI
         const badge = document.querySelector('.badge.uppercase');
         if(badge) {
             badge.innerText = cmd.toUpperCase();
@@ -275,7 +266,6 @@ function sendGameCommand(cmd) {
     });
 }
 
-// Poll status perintah setiap 3 detik
 function updateStatusBadge() {
     fetch('../api/get_settings.php')
     .then(response => response.json())

@@ -1,20 +1,13 @@
 <?php
-// user/dashboard.php
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
+$page_title = "Dashboard Pengguna - Basketball Arcade";
 
-
-$page_title = "User Dashboard - Basketball Arcade";
-
-// Database connection is already established in config/koneksi.php
-
-// Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
 
-// Statistik Pemenang (Asumsi data dari receive.php)
 $query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
 $wins = [];
@@ -26,7 +19,6 @@ $player1_wins = isset($wins['Player 1']) ? $wins['Player 1'] : (isset($wins['Kir
 $player2_wins = isset($wins['Player 2']) ? $wins['Player 2'] : (isset($wins['Kanan']) ? $wins['Kanan'] : 0);
 $total_draws = isset($wins['Draw']) ? $wins['Draw'] : (isset($wins['Seri']) ? $wins['Seri'] : 0);
 
-// Get all games with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
@@ -53,45 +45,43 @@ include '../includes/navbar.php';
         <p class="page-subtitle">Selamat datang, <?php echo $_SESSION['full_name']; ?>! 🎮</p>
     </div>
     
-    <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $total_games; ?></div>
-                <div class="stats-label">Total Games</div>
+                <div class="stats-label">Total Permainan</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $player1_wins; ?></div>
-                <div class="stats-label">Player 1 Wins</div>
+                <div class="stats-label">Kemenangan Player 1</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $player2_wins; ?></div>
-                <div class="stats-label">Player 2 Wins</div>
+                <div class="stats-label">Kemenangan Player 2</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
                 <div class="stats-number"><?php echo $total_draws; ?></div>
-                <div class="stats-label">Draws</div>
+                <div class="stats-label">Seri</div>
             </div>
         </div>
     </div>
     
-    <!-- Game History -->
     <div class="card card-custom">
         <div class="card-header-custom">
-            <i class="bi bi-clock-history"></i> Game History
+            <i class="bi bi-clock-history"></i> Riwayat Permainan
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-custom mb-0">
                     <thead>
                         <tr>
-                            <th>Game ID</th>
+                            <th>ID Permainan</th>
                             <th>Skor Kiri</th>
                             <th>Skor Kanan</th>
                             <th>Pemenang</th>
@@ -137,13 +127,12 @@ include '../includes/navbar.php';
                 </table>
             </div>
             
-            <!-- Pagination -->
             <?php if($total_pages > 1): ?>
             <div class="p-3">
                 <nav>
                     <ul class="pagination justify-content-center mb-0">
                         <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $page - 1; ?>">Previous</a>
+                            <a class="page-link" href="?page=<?php echo $page - 1; ?>">Sebelumnya</a>
                         </li>
                         <?php for($i = 1; $i <= $total_pages; $i++): ?>
                         <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
@@ -151,7 +140,7 @@ include '../includes/navbar.php';
                         </li>
                         <?php endfor; ?>
                         <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $page + 1; ?>">Next</a>
+                            <a class="page-link" href="?page=<?php echo $page + 1; ?>">Berikutnya</a>
                         </li>
                     </ul>
                 </nav>

@@ -1,9 +1,7 @@
 <?php
-// login.php
 session_start();
 require_once '../config/koneksi.php';
 
-// Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
     if($_SESSION['role'] == 'admin') {
         header("Location: ../admin/dashboard.php");
@@ -13,20 +11,17 @@ if(isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Generate CSRF token jika belum ada
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $error = '';
 
-// Brute force protection
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['login_last_attempt'] = time();
 }
 
-// Reset counter setelah 15 menit
 if (time() - $_SESSION['login_last_attempt'] > 900) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['login_last_attempt'] = time();
@@ -36,7 +31,6 @@ $max_attempts = 10;
 $locked_out = $_SESSION['login_attempts'] >= $max_attempts;
 
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Validasi CSRF dulu
     $csrf_valid = isset($_POST['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
     if (!$csrf_valid) {
         $error = 'Request tidak valid. Silakan coba lagi.';
@@ -49,7 +43,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         if(empty($username) || empty($password)) {
             $error = 'Username dan password harus diisi!';
         } else {
-            // Prepare statement
             $query = "SELECT * FROM users WHERE username = ? LIMIT 1";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("s", $username);
@@ -63,7 +56,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $user = $result->fetch_assoc();
                 
                 if(password_verify($password, $user['password'])) {
-                    // Reset counter on success
                     $_SESSION['login_attempts'] = 0;
                     session_regenerate_id(true);
 
@@ -79,7 +71,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                     exit();
                 } else {
-                    // Generic error – jangan bocorkan apakah username atau password yang salah
                     $error = 'Username atau password salah!';
                 }
             } else {
@@ -95,7 +86,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Basketball Arcade</title>
+    <title>Masuk - Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="../assets/logo.png">

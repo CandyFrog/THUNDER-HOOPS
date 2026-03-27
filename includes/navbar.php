@@ -1,16 +1,13 @@
 <?php
-// includes/navbar.php
 $current_page = basename($_SERVER['PHP_SELF']);
 $current_dir = basename(dirname($_SERVER['PHP_SELF']));
 
-// Tentukan base path untuk link
 $base_path = ($current_dir == 'admin' || $current_dir == 'user' || $current_dir == 'profil') ? '../' : '';
 $admin_path = ($current_dir == 'admin') ? '' : $base_path . 'admin/';
 $user_path = ($current_dir == 'user') ? '' : $base_path . 'user/';
 $profil_path = ($current_dir == 'profil') ? '' : $base_path . 'profil/';
 $auth_path = $base_path . 'auth/';
 
-// Fetch user data for profile picture
 $user_id_nav = $_SESSION['user_id'];
 $query_nav = "SELECT foto_profil, full_name FROM users WHERE id = ?";
 $stmt_nav = $conn->prepare($query_nav);
@@ -33,7 +30,7 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3" style="border-radius: 15px; min-width: 220px;">
                     <li class="px-3 py-3 border-bottom mb-2 bg-light rounded-top">
-                        <small class="text-muted d-block mb-1">Signed in as:</small>
+                        <small class="text-muted d-block mb-1">Masuk sebagai:</small>
                         <span class="fw-bold text-dark d-block"><?php echo $res_nav['full_name']; ?></span>
                         <span class="badge bg-peach-light text-peach small mt-1"><?php echo strtoupper($_SESSION['role']); ?></span>
                     </li>
@@ -58,12 +55,12 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                 </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'riwayat.php' ? 'active' : ''; ?>" href="<?php echo $admin_path; ?>riwayat.php">
-                        <i class="bi bi-controller"></i> Games
+                        <i class="bi bi-controller"></i> Permainan
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'users.php' ? 'active' : ''; ?>" href="<?php echo $admin_path; ?>users.php">
-                        <i class="bi bi-people"></i> Users
+                        <i class="bi bi-people"></i> Pengguna
                     </a>
                 </li>
                 <li class="nav-item">

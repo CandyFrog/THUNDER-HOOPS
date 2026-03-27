@@ -1,9 +1,7 @@
 <?php
-// register.php
 session_start();
 require_once '../config/koneksi.php';
 
-// Redirect jika sudah login
 if(isset($_SESSION['user_id'])) {
     if($_SESSION['role'] == 'admin') {
         header("Location: ../admin/dashboard.php");
@@ -13,7 +11,6 @@ if(isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Generate CSRF token
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -22,7 +19,6 @@ $error = '';
 $success = '';
 
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // CSRF check
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         $error = 'Request tidak valid. Silakan coba lagi.';
     } else {
@@ -31,7 +27,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $confirm_password = $_POST['confirm_password'];
     $full_name = trim($_POST['full_name']);
     
-    // Validasi
     if(empty($username) || empty($password) || empty($confirm_password) || empty($full_name)) {
         $error = 'Semua field harus diisi!';
     } elseif(strlen($username) < 4) {
@@ -41,7 +36,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif($password !== $confirm_password) {
         $error = 'Password dan konfirmasi password tidak cocok!';
     } else {
-        // Cek username sudah ada atau belum
         $query = "SELECT id FROM users WHERE username = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("s", $username);
@@ -51,7 +45,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         if($result->num_rows > 0) {
                 $error = 'Username sudah digunakan!';
             } else {
-                // Insert user baru
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, 'user')";
                 $stmt = $conn->prepare($query);
@@ -64,7 +57,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
         }
-    } // end CSRF else
+    }
 }
 ?>
 
@@ -73,7 +66,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Basketball Arcade</title>
+    <title>Daftar - Basketball Arcade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="../assets/logo.png">
@@ -136,7 +129,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <button type="submit" class="btn btn-peach w-100 mb-3">Daftar</button>
                 
                 <div class="text-center">
-                    <p class="mb-0">Sudah punya akun? <a href="login.php" style="color: var(--primary-peach); font-weight: 600; text-decoration: none;">Login di sini</a></p>
+                    <p class="mb-0">Sudah punya akun? <a href="login.php" style="color: var(--primary-peach); font-weight: 600; text-decoration: none;">Masuk di sini</a></p>
                 </div>
             </form>
         </div>
