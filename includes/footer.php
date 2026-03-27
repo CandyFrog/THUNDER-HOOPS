@@ -1,5 +1,4 @@
 <?php
-// includes/footer.php
 ?>
     <footer class="text-center py-4 mt-5">
         <p class="mb-0" style="color: var(--text-dark);">

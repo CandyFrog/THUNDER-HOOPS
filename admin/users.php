@@ -1,29 +1,23 @@
 <?php
-// admin/users.php
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-// Check if admin
 if($_SESSION['role'] != 'admin') {
     header("Location: ../auth/login.php");
     exit();
 }
 
-$page_title = "Manage Users - Basketball Arcade";
-
-// Connection already included
+$page_title = "Kelola Pengguna - Basketball Arcade";
 
 $success = '';
 $error = '';
 
-// Handle Add User
 if(isset($_POST['add_user'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     $full_name = trim($_POST['full_name']);
     $role = $_POST['role'];
     
-    // Validasi
     if(empty($username) || empty($password) || empty($full_name)) {
         $swal_title = 'Gagal!';
         $swal_text = 'Semua field harus diisi!';
@@ -37,7 +31,6 @@ if(isset($_POST['add_user'])) {
         $swal_text = 'Password minimal 6 karakter!';
         $swal_icon = 'error';
     } else {
-        // Cek username sudah ada atau belum
         $query = "SELECT id FROM users WHERE username = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("s", $username);
@@ -49,7 +42,6 @@ if(isset($_POST['add_user'])) {
             $swal_text = 'Username sudah digunakan!';
             $swal_icon = 'error';
         } else {
-            // Insert user baru
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $query = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($query);
@@ -57,18 +49,17 @@ if(isset($_POST['add_user'])) {
             
             if($stmt->execute()) {
                 $swal_title = 'Berhasil!';
-                $swal_text = 'User berhasil ditambahkan!';
+                $swal_text = 'Pengguna berhasil ditambahkan!';
                 $swal_icon = 'success';
             } else {
                 $swal_title = 'Error!';
-                $swal_text = 'Gagal menambahkan user: ' . $conn->error;
+                $swal_text = 'Gagal menambahkan pengguna: ' . $conn->error;
                 $swal_icon = 'error';
             }
         }
     }
 }
 
-// Handle Edit User
 if(isset($_POST['edit_user'])) {
     $user_id = (int)$_POST['user_id'];
     $username = trim($_POST['username']);
@@ -76,13 +67,11 @@ if(isset($_POST['edit_user'])) {
     $role = $_POST['role'];
     $password = $_POST['password'];
     
-    // Validasi
     if(empty($username) || empty($full_name)) {
         $swal_title = 'Gagal!';
         $swal_text = 'Username dan nama lengkap harus diisi!';
         $swal_icon = 'error';
     } else {
-        // Cek username conflict (kecuali untuk user yang sama)
         $query = "SELECT id FROM users WHERE username = ? AND id != ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("si", $username, $user_id);
@@ -91,21 +80,18 @@ if(isset($_POST['edit_user'])) {
         
         if($result->num_rows > 0) {
             $swal_title = 'Gagal!';
-            $swal_text = 'Username sudah digunakan oleh user lain!';
+            $swal_text = 'Username sudah digunakan oleh pengguna lain!';
             $swal_icon = 'error';
         } else {
-            // Update user
             $updated = false;
             
             if(!empty($password)) {
-                // Update dengan password baru
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 $query = "UPDATE users SET username = ?, password = ?, full_name = ?, role = ? WHERE id = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("ssssi", $username, $hashed_password, $full_name, $role, $user_id);
                 $updated = $stmt->execute();
             } else {
-                // Update tanpa password
                 $query = "UPDATE users SET username = ?, full_name = ?, role = ? WHERE id = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("sssi", $username, $full_name, $role, $user_id);
@@ -114,23 +100,21 @@ if(isset($_POST['edit_user'])) {
             
             if($updated) {
                 $swal_title = 'Berhasil!';
-                $swal_text = 'User berhasil diupdate!';
+                $swal_text = 'Pengguna berhasil diperbarui!';
                 $swal_icon = 'success';
             } else {
                 $swal_title = 'Error!';
-                $swal_text = 'Gagal mengupdate user: ' . $conn->error;
+                $swal_text = 'Gagal memperbarui pengguna: ' . $conn->error;
                 $swal_icon = 'error';
             }
         }
     }
 }
 
-// Get all users with pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Search functionality
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $where_clause = '';
 $params = [];
@@ -158,7 +142,6 @@ $total_pages = ceil($total_records / $limit);
 $query = "SELECT * FROM users $where_clause ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 
-// Append limit and offset to params
 $params[] = $limit;
 $params[] = $offset;
 $types .= 'ii';
@@ -171,7 +154,6 @@ $users = $result->fetch_all(MYSQLI_ASSOC);
 include '../includes/header.php';
 include '../includes/navbar.php';
 
-// Check for session alerts (e.g. from delete_user.php)
 if(isset($_SESSION['user_success'])) {
     $swal_title = 'Berhasil!';
     $swal_text = $_SESSION['user_success'];
@@ -185,17 +167,16 @@ if(isset($_SESSION['user_success'])) {
 }
 ?>
 
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-custom mt-4">
     <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
         <div>
-            <h1 class="page-title">Manage Users</h1>
+            <h1 class="page-title">Kelola Pengguna</h1>
             <p class="page-subtitle">Kelola semua pengguna sistem</p>
         </div>
         <button class="btn btn-peach" data-bs-toggle="modal" data-bs-target="#addUserModal">
-            <i class="bi bi-person-plus"></i> Add New User
+            <i class="bi bi-person-plus"></i> Tambah Pengguna Baru
         </button>
     </div>
     
@@ -208,7 +189,6 @@ if(isset($_SESSION['user_success'])) {
             confirmButtonColor: '#ff9a9e',
             border: 'none'
         }).then(() => {
-            // Clear headers to prevent resubmission if needed, or just let it stay
             if (window.history.replaceState) {
                 window.history.replaceState( null, null, window.location.href );
             }
@@ -216,7 +196,6 @@ if(isset($_SESSION['user_success'])) {
     </script>
     <?php endif; ?>
     
-    <!-- Search -->
     <div class="card card-custom mb-4">
         <div class="card-body">
             <form method="GET" action="" class="row g-3">
@@ -226,17 +205,16 @@ if(isset($_SESSION['user_success'])) {
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-peach w-100">
-                        <i class="bi bi-search"></i> Search
+                        <i class="bi bi-search"></i> Cari
                     </button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Users Table -->
     <div class="card card-custom">
         <div class="card-header-custom">
-            <i class="bi bi-people"></i> All Users (<?php echo $total_records; ?> users)
+            <i class="bi bi-people"></i> Semua Pengguna (<?php echo $total_records; ?> orang)
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -246,10 +224,10 @@ if(isset($_SESSION['user_success'])) {
                             <th>ID</th>
                             <th>Foto</th>
                             <th>Username</th>
-                            <th>Full Name</th>
+                            <th>Nama Lengkap</th>
                             <th>Role</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
+                            <th>Dibuat Pada</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -297,7 +275,7 @@ if(isset($_SESSION['user_success'])) {
                             <tr>
                                 <td colspan="6" class="text-center py-5">
                                     <i class="bi bi-inbox" style="font-size: 3rem; color: var(--secondary-peach);"></i>
-                                    <p class="mt-2 mb-0">Tidak ada data user ditemukan</p>
+                                    <p class="mt-2 mb-0">Tidak ada data pengguna ditemukan</p>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -305,7 +283,6 @@ if(isset($_SESSION['user_success'])) {
                 </table>
             </div>
             
-            <!-- Pagination -->
             <?php if($total_pages > 1): ?>
             <div class="p-3">
                 <nav>
@@ -335,12 +312,11 @@ if(isset($_SESSION['user_success'])) {
     </div>
 </div>
 
-<!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="border-radius: 20px; border: none;">
             <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-peach), var(--secondary-peach)); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New User</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Tambah Pengguna Baru</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="users.php">
@@ -352,7 +328,7 @@ if(isset($_SESSION['user_success'])) {
                         <small class="text-muted">Minimal 4 karakter</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Full Name</label>
+                        <label class="form-label">Nama Lengkap</label>
                         <input type="text" class="form-control form-control-custom" name="full_name" required>
                     </div>
                     <div class="mb-3">
@@ -365,16 +341,16 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
-                        <select class="form-control form-control-custom" name="role" required>
+                        <select class="form-select form-control-custom" name="role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer" style="border: none;">
-                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-peach">
-                        <i class="bi bi-save"></i> Save User
+                        <i class="bi bi-save"></i> Simpan Pengguna
                     </button>
                 </div>
             </form>
@@ -382,12 +358,11 @@ if(isset($_SESSION['user_success'])) {
     </div>
 </div>
 
-<!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="border-radius: 20px; border: none;">
             <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-peach), var(--secondary-peach)); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Pengguna</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="users.php">
@@ -399,7 +374,7 @@ if(isset($_SESSION['user_success'])) {
                         <input type="text" class="form-control form-control-custom" name="username" id="edit_username" required minlength="4">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Full Name</label>
+                        <label class="form-label">Nama Lengkap</label>
                         <input type="text" class="form-control form-control-custom" name="full_name" id="edit_full_name" required>
                     </div>
                     <div class="mb-3">
@@ -412,16 +387,16 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
-                        <select class="form-control form-control-custom" name="role" id="edit_role" required>
+                        <select class="form-select form-control-custom" name="role" id="edit_role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer" style="border: none;">
-                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-peach">
-                        <i class="bi bi-save"></i> Update User
+                        <i class="bi bi-save"></i> Perbarui Pengguna
                     </button>
                 </div>
             </form>
@@ -429,25 +404,24 @@ if(isset($_SESSION['user_success'])) {
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="border-radius: 20px; border: none;">
             <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title"><i class="bi bi-trash"></i> Delete User</h5>
+                <h5 class="modal-title"><i class="bi bi-trash"></i> Hapus Pengguna</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this user?</p>
+                <p>Apakah Anda yakin ingin menghapus pengguna ini?</p>
                 <p class="text-danger mb-0"><strong>Username: <span id="delete_user_name"></span></strong></p>
             </div>
             <div class="modal-footer" style="border: none;">
-                <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-peach" data-bs-dismiss="modal">Batal</button>
                 <form method="POST" action="delete_user.php" id="deleteUserForm">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
                     <input type="hidden" name="user_id" id="delete_user_id_input">
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Delete
+                        <i class="bi bi-trash"></i> Hapus
                     </button>
                 </form>
             </div>
@@ -457,7 +431,6 @@ if(isset($_SESSION['user_success'])) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Edit User Handler
     const editButtons = document.querySelectorAll('.btn-edit-user');
     editButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -473,8 +446,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
                 editModal.show();
             } catch (e) {
-                console.error("Error parsing user data:", e);
-                Swal.fire('Error', 'Gagal mengambil data user', 'error');
+                console.error("Error mengambil data pengguna:", e);
+                Swal.fire('Error', 'Gagal mengambil data pengguna', 'error');
             }
         });
     });

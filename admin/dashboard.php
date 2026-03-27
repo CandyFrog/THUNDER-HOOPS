@@ -1,17 +1,14 @@
 <?php
-// admin/dashboard.php
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-// Check if admin
 if($_SESSION['role'] != 'admin') {
     header("Location: ../auth/login.php");
     exit();
 }
 
-$page_title = "Admin Dashboard - Basketball Arcade";
+$page_title = "Dashboard Admin - Basketball Arcade";
 
-// Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
@@ -20,7 +17,6 @@ $query = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
 $result = $conn->query($query);
 $total_users = $result->fetch_assoc()['total'];
 
-// Statistik Pemenang
 $query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
 $wins = [];
@@ -42,7 +38,6 @@ foreach ($wins as $key => $count) {
     }
 }
 
-// Get recent games
 $query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
 $result = $conn->query($query);
 $recent_games = $result->fetch_all(MYSQLI_ASSOC);
@@ -53,7 +48,7 @@ include '../includes/navbar.php';
 
 <div class="container-custom mt-4">
     <div class="mb-4">
-        <h1 class="page-title">Admin Dashboard</h1>
+        <h1 class="page-title">Dashboard Admin</h1>
         <p class="page-subtitle">Selamat datang kembali, <?php echo $_SESSION['full_name']; ?>! 👋</p>
     </div>
     
@@ -62,31 +57,31 @@ include '../includes/navbar.php';
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
-                    <div class="stats-label">Total Games</div>
+                    <div class="stats-label">Total Permainan</div>
                 </div>
             </div>
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-users"><?php echo $total_users; ?></div>
-                    <div class="stats-label">Total Users</div>
+                    <div class="stats-label">Total Pengguna</div>
                 </div>
             </div>
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
-                    <div class="stats-label">Player 1 Wins</div>
+                    <div class="stats-label">Kemenangan Player 1</div>
                 </div>
             </div>
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-draws"><?php echo $total_draws; ?></div>
-                    <div class="stats-label">Draws</div>
+                    <div class="stats-label">Seri</div>
                 </div>
             </div>
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
-                    <div class="stats-label">Player 2 Wins</div>
+                    <div class="stats-label">Kemenangan Player 2</div>
                 </div>
             </div>
         </div>
@@ -94,7 +89,7 @@ include '../includes/navbar.php';
     
     <div class="card card-custom">
         <div class="card-header-custom d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-clock-history"></i> Recent Games</span>
+            <span><i class="bi bi-clock-history"></i> Permainan Terkini</span>
             <span class="badge bg-soft-peach text-peach" id="live-indicator">
                 <span class="spinner-grow spinner-grow-sm me-1" role="status"></span> LIVE
             </span>
@@ -132,7 +127,7 @@ include '../includes/navbar.php';
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center py-4">Belum ada data game</td>
+                                <td colspan="6" class="text-center py-4">Belum ada data permainan</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -178,7 +173,7 @@ function refreshDashboard() {
                         `;
                     });
                 } else {
-                    tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data game</td></tr>';
+                    tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data permainan</td></tr>';
                 }
                 
                 if (tbody.innerHTML !== tableHtml) {
@@ -186,8 +181,9 @@ function refreshDashboard() {
                 }
             }
         })
-        .catch(error => console.error('Error refreshing dashboard:', error));
+        .catch(error => console.error('Gagal memperbarui dashboard:', error));
 }
+
 setInterval(refreshDashboard, 5000);
 </script>
 

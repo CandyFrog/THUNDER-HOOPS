@@ -1,29 +1,24 @@
 <?php
-// admin/games.php
 require_once '../midleware/cek_login.php';
 require_once '../config/koneksi.php';
 
-// Check if admin
 if($_SESSION['role'] != 'admin') {
     header("Location: ../auth/login.php");
     exit();
 }
 
-$page_title = "Game History - Basketball Arcade";
+$page_title = "Riwayat Permainan - Basketball Arcade";
 
-// Pagination settings
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 15;
 $offset = ($page - 1) * $limit;
 
-// Filter and Search parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $winner_filter = isset($_GET['winner']) ? trim($_GET['winner']) : '';
 
 $where_clauses = [];
 $params = [];
 $types = '';
-
 
 if(!empty($search)) {
     $where_clauses[] = "(id LIKE ? OR pemenang LIKE ?)";
@@ -41,7 +36,6 @@ if(!empty($winner_filter)) {
 
 $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
-// Get total records for pagination
 $query_total = "SELECT COUNT(*) as total FROM match_data $where_sql";
 $stmt_total = $conn->prepare($query_total);
 if(!empty($params)) {
@@ -51,7 +45,6 @@ $stmt_total->execute();
 $total_records = $stmt_total->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-// Get paginated results
 $query_games = "SELECT * FROM match_data $where_sql ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt_games = $conn->prepare($query_games);
 
@@ -68,11 +61,10 @@ include '../includes/navbar.php';
 
 <div class="container-custom mt-4">
     <div class="mb-4">
-        <h1 class="page-title">Game History</h1>
+        <h1 class="page-title">Riwayat Permainan</h1>
         <p class="page-subtitle">Riwayat seluruh hasil pertandingan THUNDER-HOOPS</p>
     </div>
     
-    <!-- Filter Card -->
     <div class="card card-custom mb-4 shadow-sm border-0">
         <div class="card-body">
             <form method="GET" action="" class="row g-3 align-items-end">
@@ -109,7 +101,6 @@ include '../includes/navbar.php';
         </div>
     </div>
     
-    <!-- Games Table -->
     <div class="card card-custom shadow-sm border-0 overflow-hidden">
         <div class="card-header-custom p-3 bg-white border-bottom d-flex align-items-center justify-content-between">
             <span class="fw-bold"><i class="bi bi-trophy-fill me-2 text-peach"></i>Daftar Pertandingan</span>
@@ -121,7 +112,7 @@ include '../includes/navbar.php';
                     <thead class="bg-light shadow-sm">
                         <tr>
                             <th class="ps-4 py-3" style="width: 80px;">No</th>
-                            <th class="py-3">Match ID</th>
+                            <th class="py-3">ID Pertandingan</th>
                             <th class="py-3" style="width: 15%;">Skor Kiri</th>
                             <th class="py-3" style="width: 15%;">Skor Kanan</th>
                             <th class="py-3">Status Pemenang</th>
@@ -191,7 +182,6 @@ include '../includes/navbar.php';
                 </table>
             </div>
             
-            <!-- Pagination Section -->
             <?php if($total_pages > 1): ?>
             <div class="p-4 border-top">
                 <nav>
