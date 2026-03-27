@@ -75,7 +75,7 @@ include '../includes/navbar.php';
             <div class="col">
                 <div class="stats-card h-100">
                     <div class="stats-number" id="stat-total-draws"><?php echo $total_draws; ?></div>
-                    <div class="stats-label">Draws</div>
+                    <div class="stats-label">Seri</div>
                 </div>
             </div>
             <div class="col">

@@ -4,8 +4,6 @@ require_once '../config/koneksi.php';
 
 $page_title = "Dashboard Pengguna - Basketball Arcade";
 
-$page_title = "User Dashboard - Basketball Arcade";
-
 // Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
