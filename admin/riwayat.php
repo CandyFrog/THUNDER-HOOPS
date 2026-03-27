@@ -117,6 +117,7 @@ include '../includes/navbar.php';
                             <th class="py-3" style="width: 15%;">Skor Kanan</th>
                             <th class="py-3">Status Pemenang</th>
                             <th class="py-3">Durasi</th>
+                            <th class="py-3">Waktu</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,6 +161,9 @@ include '../includes/navbar.php';
                                 </td>
                                 <td>
                                     <span class="text-dark fw-bold"><i class="bi bi-lightning-charge-fill me-1 text-warning"></i><?php echo $game['durasi']; ?>s</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small"><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></span>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
