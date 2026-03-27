@@ -40,7 +40,7 @@ $result = $conn->query($query);
 $total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT ? OFFSET ?";
+$query = "SELECT * FROM match_data ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();

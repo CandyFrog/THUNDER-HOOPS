@@ -22,7 +22,15 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
             <img src="<?php echo $base_path; ?>assets/logo.png" alt="Logo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--primary-peach);">
             <span class="d-none d-sm-inline">Basketball Arcade</span>
         </a>
-        <div class="d-flex align-items-center gap-1 gap-md-2 order-lg-last">
+        <?php if($_SESSION['role'] == 'user'): ?>
+        <div class="d-flex align-items-center ms-3">
+            <a class="nav-link fw-bold text-peach <?php echo $current_page == 'dashboard.php' && $current_dir == 'user' ? 'active' : ''; ?>" href="<?php echo $user_path; ?>dashboard.php">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <div class="d-flex align-items-center gap-1 gap-md-2 ms-auto <?php echo $_SESSION['role'] == 'admin' ? 'order-lg-last' : ''; ?>">
             <div class="dropdown me-lg-2">
                 <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" role="button" data-bs-toggle="dropdown">
                     <img src="<?php echo $nav_photo; ?>" alt="Avatar" class="rounded-circle shadow-sm" style="width: 34px; height: 34px; object-fit: cover; border: 2px solid var(--primary-peach);">
@@ -40,14 +48,16 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                 </ul>
             </div>
 
+            <?php if($_SESSION['role'] == 'admin'): ?>
             <button class="navbar-toggler shadow-none border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon" style="width: 1.25rem; height: 1.25rem;"></span>
             </button>
+            <?php endif; ?>
         </div>
 
+        <?php if($_SESSION['role'] == 'admin'): ?>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto align-items-lg-center mt-3 mt-lg-0">
-                <?php if($_SESSION['role'] == 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'dashboard.php' && $current_dir == 'admin' ? 'active' : ''; ?>" href="<?php echo $admin_path; ?>dashboard.php">
                         <i class="bi bi-speedometer2"></i> Dashboard
@@ -68,14 +78,8 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                         <i class="bi bi-gear"></i> Pengaturan
                     </a>
                 </li>
-                <?php else: ?>
-                <li class="nav-item">
-                    <a class="nav-link <?php echo $current_page == 'dashboard.php' && $current_dir == 'user' ? 'active' : ''; ?>" href="<?php echo $user_path; ?>dashboard.php">
-                        <i class="bi bi-house-door"></i> Dashboard
-                    </a>
-                </li>
-                <?php endif; ?>
             </ul>
         </div>
+        <?php endif; ?>
     </div>
 </nav>
