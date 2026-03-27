@@ -32,7 +32,7 @@ $nav_photo = !empty($res_nav['foto_profil']) ? $base_path . 'assets/foto_profil/
                     <li class="px-3 py-3 border-bottom mb-2 bg-light rounded-top">
                         <small class="text-muted d-block mb-1">Masuk sebagai:</small>
                         <span class="fw-bold text-dark d-block"><?php echo $res_nav['full_name']; ?></span>
-                        <span class="badge bg-peach-light text-peach small mt-1"><?php echo strtoupper($_SESSION['role']); ?></span>
+                        <span class="badge <?php echo $_SESSION['role'] == 'admin' ? 'badge-role-admin' : 'badge-role-user'; ?> small mt-1"><?php echo strtoupper($_SESSION['role']); ?></span>
                     </li>
                     <li><a class="dropdown-item py-2 px-3" href="<?php echo $profil_path; ?>index.php"><i class="bi bi-person-circle me-2 text-peach"></i> Profil Saya</a></li>
                     <li><hr class="dropdown-divider mx-2"></li>

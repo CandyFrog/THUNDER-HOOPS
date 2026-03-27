@@ -341,7 +341,7 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
-                        <select class="form-control form-control-custom" name="role" required>
+                        <select class="form-select form-control-custom" name="role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -387,7 +387,7 @@ if(isset($_SESSION['user_success'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
-                        <select class="form-control form-control-custom" name="role" id="edit_role" required>
+                        <select class="form-select form-control-custom" name="role" id="edit_role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>

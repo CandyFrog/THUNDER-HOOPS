@@ -150,7 +150,7 @@ include '../includes/header.php';
                 <h4 class="fw-bold mb-1 mt-2"><?php echo htmlspecialchars($user['full_name']); ?></h4>
                 <p class="text-muted small mb-3">#<?php echo htmlspecialchars($user['username']); ?></p>
                 <div class="d-flex justify-content-center gap-2 mb-4">
-                    <span class="badge bg-peach px-3 py-2 rounded-pill"><?php echo ucfirst($user['role']); ?></span>
+                    <span class="badge <?php echo $user['role'] == 'admin' ? 'badge-role-admin' : 'badge-role-user'; ?> px-3 py-2 rounded-pill"><?php echo ucfirst($user['role']); ?></span>
                 </div>
 
                 <div class="d-grid gap-2">
