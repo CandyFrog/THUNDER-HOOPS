@@ -184,9 +184,12 @@ include '../includes/navbar.php';
                                 <label for="wifi_password" class="form-label fw-bold text-muted mb-2">Password WiFi</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-light border-end-0 px-3"><i class="bi bi-key text-peach fs-4"></i></span>
-                                    <input type="password" class="form-control form-control-custom border-start-0 ps-0 bg-light fs-6 fw-bold" 
+                                    <input type="password" class="form-control form-control-custom border-start-0 border-end-0 ps-0 bg-light fs-6 fw-bold" 
                                            id="wifi_password" name="wifi_password" 
                                            value="<?php echo htmlspecialchars($current_wifi_pass); ?>" placeholder="Password WiFi">
+                                    <span class="input-group-text bg-light border-start-0 px-3" style="cursor: pointer;" onclick="toggleWifiPassword(this)">
+                                        <i class="bi bi-eye text-peach fs-5" id="wifi-pass-icon"></i>
+                                    </span>
                                 </div>
                                 <div class="form-text mt-3 text-muted">
                                     <i class="bi bi-info-circle me-1 text-peach"></i> Disimpan di database untuk referensi atau fitur sinkronisasi WiFi.
@@ -242,6 +245,20 @@ include '../includes/navbar.php';
 </div>
 
 <script>
+function toggleWifiPassword(element) {
+    const input = document.getElementById('wifi_password');
+    const icon = document.getElementById('wifi-pass-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+
 document.querySelector('.form-ajax-settings').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-save');
@@ -406,8 +423,9 @@ function copyApiUrl() {
 .card-custom { border-radius: 20px !important; }
 .btn-peach { background: linear-gradient(135deg, var(--primary-peach), var(--secondary-peach)); border: none; color: white; border-radius: 14px; font-weight: 600; transition: all 0.3s ease; height: 54px; }
 .btn-peach:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4); color: white; opacity: 0.95; }
-.form-control-custom { border-radius: 0 14px 14px 0 !important; height: 54px; border: 1px solid #eee; }
-.input-group-text { border-radius: 14px 0 0 14px !important; }
+.form-control-custom { height: 54px; border: 1px solid #eee; }
+.input-group > :first-child { border-top-left-radius: 14px !important; border-bottom-left-radius: 14px !important; }
+.input-group > :last-child { border-top-right-radius: 14px !important; border-bottom-right-radius: 14px !important; }
 .form-control-custom:focus { border-color: var(--primary-peach); box-shadow: 0 0 0 0.25rem rgba(255, 154, 158, 0.15); background-color: #fff !important; }
 .btn-action { transition: all 0.3s ease; }
 .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important; }
