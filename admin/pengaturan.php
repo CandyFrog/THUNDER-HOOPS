@@ -49,6 +49,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message = "Durasi harus lebih dari 0 detik!";
             $message_type = "warning";
         }
+    } elseif (isset($_POST['update_wifi'])) {
+        $wifi_ssid = trim($_POST['wifi_ssid'] ?? '');
+        $wifi_pass = trim($_POST['wifi_password'] ?? '');
+
+        if (!empty($wifi_ssid)) {
+            $stmt1 = $conn->prepare("INSERT INTO settings (name, value) VALUES ('wifi_ssid', ?) ON DUPLICATE KEY UPDATE value = ?");
+            $stmt1->bind_param("ss", $wifi_ssid, $wifi_ssid);
+            $stmt1->execute();
+
+            $stmt2 = $conn->prepare("INSERT INTO settings (name, value) VALUES ('wifi_password', ?) ON DUPLICATE KEY UPDATE value = ?");
+            $stmt2->bind_param("ss", $wifi_pass, $wifi_pass);
+            $stmt2->execute();
+
+            $sync_val = "1";
+            $stmt3 = $conn->prepare("INSERT INTO settings (name, value) VALUES ('wifi_sync_pending', ?) ON DUPLICATE KEY UPDATE value = ?");
+            $stmt3->bind_param("ss", $sync_val, $sync_val);
+            $stmt3->execute();
+
+            if ($is_ajax) {
+                ob_clean();
+                echo json_encode(['status' => 'success', 'message' => 'Username dan Password WiFi berhasil diperbarui!']);
+                exit();
+            }
+            $message = "Pengaturan WiFi berhasil diperbarui!";
+            $message_type = "success";
+        } else {
+            if ($is_ajax) {
+                ob_clean();
+                echo json_encode(['status' => 'error', 'message' => 'SSID WiFi tidak boleh kosong!']);
+                exit();
+            }
+            $message = "SSID WiFi tidak boleh kosong!";
+            $message_type = "warning";
+        }
     } elseif (isset($_POST['game_command'])) {
         $cmd = $_POST['game_command'];
         $query = "UPDATE settings SET value = ? WHERE name = 'game_command'";
@@ -66,10 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$query = "SELECT value FROM settings WHERE name = 'match_duration'";
+$query = "SELECT name, value FROM settings WHERE name IN ('match_duration', 'wifi_ssid', 'wifi_password')";
 $result = $conn->query($query);
-$settings = $result->fetch_assoc();
-$current_duration = $settings['value'] ?? 60;
+$settings = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $settings[$row['name']] = $row['value'];
+    }
+}
+$current_duration = $settings['match_duration'] ?? 60;
+$current_wifi_ssid = $settings['wifi_ssid'] ?? '';
+$current_wifi_pass = $settings['wifi_password'] ?? '';
 
 include '../includes/header.php';
 include '../includes/navbar.php';
@@ -116,6 +157,45 @@ include '../includes/navbar.php';
                         
                         <button type="submit" name="update_duration" id="btn-save" class="btn btn-peach w-100 py-3 mt-auto fs-6">
                             <i class="bi bi-save me-2 fs-5"></i> <span id="btn-text">Simpan Perubahan</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card card-custom shadow-sm border-0 h-100">
+                <div class="card-header-custom p-3 p-md-4 bg-white border-bottom">
+                    <span class="fw-bold fs-5 text-dark"><i class="bi bi-wifi me-2 text-peach"></i>Pengaturan WiFi (SSID & Password)</span>
+                </div>
+                <div class="card-body p-3 p-md-4 d-flex flex-column justify-content-between">
+                    <form method="POST" action="" class="form-ajax-wifi no-auto-loading h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="mb-3">
+                                <label for="wifi_ssid" class="form-label fw-bold text-muted mb-2">Nama WiFi (SSID)</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-light border-end-0 px-3"><i class="bi bi-wifi text-peach fs-4"></i></span>
+                                    <input type="text" class="form-control form-control-custom border-start-0 ps-0 bg-light fs-6 fw-bold" 
+                                           id="wifi_ssid" name="wifi_ssid" 
+                                           value="<?php echo htmlspecialchars($current_wifi_ssid); ?>" placeholder="Nama WiFi (SSID)" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="wifi_password" class="form-label fw-bold text-muted mb-2">Password WiFi</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-light border-end-0 px-3"><i class="bi bi-key text-peach fs-4"></i></span>
+                                    <input type="password" class="form-control form-control-custom border-start-0 ps-0 bg-light fs-6 fw-bold" 
+                                           id="wifi_password" name="wifi_password" 
+                                           value="<?php echo htmlspecialchars($current_wifi_pass); ?>" placeholder="Password WiFi">
+                                </div>
+                                <div class="form-text mt-3 text-muted">
+                                    <i class="bi bi-info-circle me-1 text-peach"></i> Disimpan di database untuk referensi atau fitur sinkronisasi WiFi.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" name="update_wifi" id="btn-save-wifi" class="btn btn-peach w-100 py-3 mt-auto fs-6">
+                            <i class="bi bi-save me-2 fs-5"></i> <span id="btn-wifi-text">Simpan Pengaturan WiFi</span>
                         </button>
                     </form>
                 </div>
@@ -172,6 +252,54 @@ document.querySelector('.form-ajax-settings').addEventListener('submit', functio
     const formData = new FormData(this);
     formData.append('ajax', '1');
     formData.append('update_duration', '1');
+
+    fetch('pengaturan.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Raw Response:', text);
+            throw new Error('Terjadi kesalahan pada format data server.');
+        }
+    })
+    .then(data => {
+        Swal.fire({
+            title: data.status === 'success' ? 'Berhasil!' : 'Gagal!',
+            text: data.message,
+            icon: data.status,
+            confirmButtonColor: '#ff9a9e'
+        }).then(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHTML;
+        });
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#ff9a9e'
+        }).then(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHTML;
+        });
+    });
+});
+
+document.querySelector('.form-ajax-wifi').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-wifi');
+    const originalBtnHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+
+    const formData = new FormData(this);
+    formData.append('ajax', '1');
+    formData.append('update_wifi', '1');
 
     fetch('pengaturan.php', {
         method: 'POST',
