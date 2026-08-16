@@ -45,7 +45,7 @@ foreach ($wins as $key => $count) {
 }
 
 // 4. Recent Games
-$query = "SELECT * FROM match_data ORDER BY id ASC LIMIT 5";
+$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT 5";
 $result = $conn->query($query);
 $recent_games = $result->fetch_all(MYSQLI_ASSOC);
 

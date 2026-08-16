@@ -45,7 +45,7 @@ $stmt_total->execute();
 $total_records = $stmt_total->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query_games = "SELECT * FROM match_data $where_sql ORDER BY id ASC LIMIT ? OFFSET ?";
+$query_games = "SELECT * FROM match_data $where_sql ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt_games = $conn->prepare($query_games);
 
 $final_params = array_merge($params, [$limit, $offset]);
@@ -108,74 +108,38 @@ include '../includes/navbar.php';
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light shadow-sm">
+                <table class="table table-custom mb-0">
+                    <thead>
                         <tr>
-                            <th class="ps-4 py-3" style="width: 80px;">No</th>
-                            <th class="py-3">ID Pertandingan</th>
-                            <th class="py-3" style="width: 15%;">Skor Kiri</th>
-                            <th class="py-3" style="width: 15%;">Skor Kanan</th>
-                            <th class="py-3">Status Pemenang</th>
-                            <th class="py-3">Durasi</th>
-                            <th class="py-3">Waktu</th>
+                            <th>ID</th>
+                            <th style="width: 15%; text-align: center;">Skor Kiri</th>
+                            <th style="width: 15%; text-align: center;">Skor Kanan</th>
+                            <th>Pemenang</th>
+                            <th>Durasi</th>
+                            <th>Waktu</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if(count($games) > 0): ?>
-                            <?php $no = $offset + 1; foreach($games as $game): ?>
+                            <?php foreach($games as $game): ?>
                             <tr>
-                                <td class="ps-4 text-muted small"><?php echo $no++; ?>.</td>
-                                <td><span class="fw-bold text-peach">#<?php echo $game['id']; ?></span></td>
+                                <td>#<?php echo $game['id']; ?></td>
+                                <td class="text-center"><strong><?php echo $game['skor_kiri']; ?></strong></td>
+                                <td class="text-center"><strong><?php echo $game['skor_kanan']; ?></strong></td>
                                 <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="score-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #eee;">
-                                            <?php echo $game['skor_kiri']; ?>
-                                        </div>
-                                    </div>
+                                    <?php if($game['pemenang'] == 'Draw' || $game['pemenang'] == 'Seri'): ?>
+                                        <span class="badge-draw">Seri</span>
+                                    <?php else: ?>
+                                        <span class="badge-winner"><?php echo $game['pemenang']; ?></span>
+                                    <?php endif; ?>
                                 </td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="score-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #eee;">
-                                            <?php echo $game['skor_kanan']; ?>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <?php 
-                                    $badge_class = 'bg-secondary';
-                                    $icon = 'bi-dash-circle';
-                                    if($game['pemenang'] == 'Kiri') {
-                                        $badge_class = 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25';
-                                        $icon = 'bi-chevron-left';
-                                    } elseif($game['pemenang'] == 'Kanan') {
-                                        $badge_class = 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
-                                        $icon = 'bi-chevron-right';
-                                    } elseif($game['pemenang'] == 'Seri' || $game['pemenang'] == 'Draw') {
-                                        $badge_class = 'bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25';
-                                        $icon = 'bi-repeat';
-                                    }
-                                    ?>
-                                    <span class="badge <?php echo $badge_class; ?> px-3 py-2 rounded-pill">
-                                        <i class="bi <?php echo $icon; ?> me-1"></i> <?php echo $game['pemenang']; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="text-dark fw-bold"><i class="bi bi-lightning-charge-fill me-1 text-warning"></i><?php echo $game['durasi']; ?>s</span>
-                                </td>
-                                <td>
-                                    <span class="text-muted small"><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></span>
-                                </td>
+                                <td><?php echo $game['durasi']; ?>s</td>
+                                <td><?php echo date('d M Y H:i', strtotime($game['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <div class="text-center px-4">
-                                        <div class="mb-3 text-muted" style="font-size: 3.5rem;"><i class="bi bi-emoji-frown"></i></div>
-                                        <h5 class="fw-bold">Tidak Menemukan Data</h5>
-                                        <p class="text-muted mb-0">Coba gunakan filter lain atau pastikan koneksi Arduino menyala.</p>
-                                    </div>
-                                </td>
+                                <td colspan="6" class="text-center py-4">Belum ada data permainan</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
