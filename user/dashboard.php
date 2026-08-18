@@ -4,12 +4,10 @@ require_once '../config/koneksi.php';
 
 $page_title = "Dashboard Pengguna - Basketball Arcade";
 
-// Get statistics
 $query = "SELECT COUNT(*) as total FROM match_data";
 $result = $conn->query($query);
 $total_games = $result->fetch_assoc()['total'];
 
-// Statistik Pemenang
 $query = "SELECT pemenang, COUNT(*) as total FROM match_data GROUP BY pemenang";
 $result = $conn->query($query);
 $wins = [];
@@ -40,7 +38,7 @@ $result = $conn->query($query);
 $total_records = $result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query = "SELECT * FROM match_data ORDER BY id DESC LIMIT ? OFFSET ?";
+$query = "SELECT id, skor_kiri, skor_kanan, durasi, pemenang, created_at FROM match_data ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
@@ -60,25 +58,25 @@ include '../includes/navbar.php';
     <div class="row g-4 mb-4">
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
-                <div class="stats-number"><?php echo $total_games; ?></div>
+                <div class="stats-number" id="stat-total-games"><?php echo $total_games; ?></div>
                 <div class="stats-label">Total Permainan</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
-                <div class="stats-number"><?php echo $player1_wins; ?></div>
+                <div class="stats-number" id="stat-player1-wins"><?php echo $player1_wins; ?></div>
                 <div class="stats-label">Kemenangan Player 1</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
-                <div class="stats-number"><?php echo $player2_wins; ?></div>
+                <div class="stats-number" id="stat-player2-wins"><?php echo $player2_wins; ?></div>
                 <div class="stats-label">Kemenangan Player 2</div>
             </div>
         </div>
         <div class="col-6 col-md-6 col-lg-3">
             <div class="stats-card">
-                <div class="stats-number"><?php echo $total_draws; ?></div>
+                <div class="stats-number" id="stat-total-draws"><?php echo $total_draws; ?></div>
                 <div class="stats-label">Seri</div>
             </div>
         </div>
@@ -101,7 +99,7 @@ include '../includes/navbar.php';
                             <th>Waktu</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="user-games-table">
                         <?php if(count($games) > 0): ?>
                             <?php foreach($games as $game): ?>
                             <tr>
@@ -162,4 +160,60 @@ include '../includes/navbar.php';
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<script>
+(function () {
+    const currentPage = <?php echo $page; ?>;
+    const limit       = <?php echo $limit; ?>;
+
+    function refreshUserDashboard() {
+        fetch(`../api/match_data.php?page=${currentPage}&limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') return;
+
+                document.getElementById('stat-total-games').innerText  = data.stats.total_games;
+                document.getElementById('stat-player1-wins').innerText = data.stats.player1_wins;
+                document.getElementById('stat-player2-wins').innerText = data.stats.player2_wins;
+                document.getElementById('stat-total-draws').innerText  = data.stats.total_draws;
+
+                const tbody = document.getElementById('user-games-table');
+                let tableHtml = '';
+
+                if (data.games.length > 0) {
+                    data.games.forEach(game => {
+                        const badgeClass    = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
+                        const badgeText     = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
+                        const date          = new Date(game.created_at);
+                        const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                           + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                        tableHtml += `
+                            <tr>
+                                <td><strong>#${game.id}</strong></td>
+                                <td><span style="font-size:1.2rem;font-weight:600;color:var(--primary-peach);">${game.skor_kiri}</span></td>
+                                <td><span style="font-size:1.2rem;font-weight:600;color:var(--primary-peach);">${game.skor_kanan}</span></td>
+                                <td><span class="${badgeClass}">${badgeText}</span></td>
+                                <td>${game.durasi} detik</td>
+                                <td>${formattedDate}</td>
+                            </tr>`;
+                    });
+                } else {
+                    tableHtml = `<tr><td colspan="6" class="text-center py-4">
+                        <i class="bi bi-inbox" style="font-size:3rem;color:var(--secondary-peach);"></i>
+                        <p class="mt-2 mb-0">Belum ada riwayat permainan</p>
+                    </td></tr>`;
+                }
+
+                if (tbody.innerHTML !== tableHtml) {
+                    tbody.innerHTML = tableHtml;
+                }
+            })
+            .catch(error => console.error('Gagal memperbarui data:', error));
+    }
+
+    refreshUserDashboard();
+    setInterval(refreshUserDashboard, 3000);
+})();
+</script>
+
+<?php include '../includes/footer.php'; ?>

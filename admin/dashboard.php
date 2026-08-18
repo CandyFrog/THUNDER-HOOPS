@@ -142,49 +142,48 @@ function refreshDashboard() {
     fetch('../api/dashboard_stats.php')
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                document.getElementById('stat-total-games').innerText = data.stats.total_games;
-                document.getElementById('stat-total-users').innerText = data.stats.total_users;
-                document.getElementById('stat-player1-wins').innerText = data.stats.player1_wins;
-                document.getElementById('stat-player2-wins').innerText = data.stats.player2_wins;
-                document.getElementById('stat-total-draws').innerText = data.stats.total_draws;
+            if (data.status !== 'success') return;
 
-                const tbody = document.getElementById('recent-games-table');
-                let tableHtml = '';
-                
-                if (data.recent_games.length > 0) {
-                    data.recent_games.forEach(game => {
-                        const badgeClass = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
-                        const badgeText = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
-                        
-                        const date = new Date(game.created_at);
-                        const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
-                                            date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('stat-total-games').innerText   = data.stats.total_games;
+            document.getElementById('stat-total-users').innerText   = data.stats.total_users;
+            document.getElementById('stat-player1-wins').innerText  = data.stats.player1_wins;
+            document.getElementById('stat-player2-wins').innerText  = data.stats.player2_wins;
+            document.getElementById('stat-total-draws').innerText   = data.stats.total_draws;
 
-                        tableHtml += `
-                            <tr>
-                                <td>#${game.id}</td>
-                                <td class="text-center"><strong>${game.skor_kiri}</strong></td>
-                                <td class="text-center"><strong>${game.skor_kanan}</strong></td>
-                                <td><span class="${badgeClass}">${badgeText}</span></td>
-                                <td>${game.durasi}s</td>
-                                <td>${formattedDate}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data permainan</td></tr>';
-                }
-                
-                if (tbody.innerHTML !== tableHtml) {
-                    tbody.innerHTML = tableHtml;
-                }
+            const tbody = document.getElementById('recent-games-table');
+            let tableHtml = '';
+
+            if (data.recent_games.length > 0) {
+                data.recent_games.forEach(game => {
+                    const badgeClass    = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
+                    const badgeText     = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
+                    const date          = new Date(game.created_at);
+                    const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                       + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                    tableHtml += `
+                        <tr>
+                            <td>#${game.id}</td>
+                            <td class="text-center"><strong>${game.skor_kiri}</strong></td>
+                            <td class="text-center"><strong>${game.skor_kanan}</strong></td>
+                            <td><span class="${badgeClass}">${badgeText}</span></td>
+                            <td>${game.durasi}s</td>
+                            <td>${formattedDate}</td>
+                        </tr>`;
+                });
+            } else {
+                tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data permainan</td></tr>';
+            }
+
+            if (tbody.innerHTML !== tableHtml) {
+                tbody.innerHTML = tableHtml;
             }
         })
         .catch(error => console.error('Gagal memperbarui dashboard:', error));
 }
 
-setInterval(refreshDashboard, 5000);
+refreshDashboard();
+setInterval(refreshDashboard, 3000);
 </script>
 
 <style>
