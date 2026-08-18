@@ -45,7 +45,7 @@ $stmt_total->execute();
 $total_records = $stmt_total->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $limit);
 
-$query_games = "SELECT * FROM match_data $where_sql ORDER BY id DESC LIMIT ? OFFSET ?";
+$query_games = "SELECT id, skor_kiri, skor_kanan, durasi, pemenang, created_at FROM match_data $where_sql ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt_games = $conn->prepare($query_games);
 
 $final_params = array_merge($params, [$limit, $offset]);
@@ -104,7 +104,7 @@ include '../includes/navbar.php';
     <div class="card card-custom shadow-sm border-0 overflow-hidden">
         <div class="card-header-custom p-3 bg-white border-bottom d-flex align-items-center justify-content-between">
             <span class="fw-bold"><i class="bi bi-trophy-fill me-2 text-peach"></i>Daftar Pertandingan</span>
-            <span class="badge bg-light text-muted border"><?php echo $total_records; ?> Total Data</span>
+            <span class="badge bg-light text-muted border" id="total-records-badge"><?php echo $total_records; ?> Total Data</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -119,7 +119,7 @@ include '../includes/navbar.php';
                             <th>Waktu</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="riwayat-games-table">
                         <?php if(count($games) > 0): ?>
                             <?php foreach($games as $game): ?>
                             <tr>
@@ -182,6 +182,65 @@ include '../includes/navbar.php';
     </div>
 </div>
 
+<script>
+(function () {
+    const currentPage    = <?php echo $page; ?>;
+    const limit          = <?php echo $limit; ?>;
+    const searchParam    = <?php echo json_encode($search); ?>;
+    const winnerParam    = <?php echo json_encode($winner_filter); ?>;
+
+    function buildUrl() {
+        let url = `../api/match_data.php?page=${currentPage}&limit=${limit}`;
+        if (searchParam) url += `&search=${encodeURIComponent(searchParam)}`;
+        if (winnerParam) url += `&winner=${encodeURIComponent(winnerParam)}`;
+        return url;
+    }
+
+    function refreshRiwayat() {
+        fetch(buildUrl())
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') return;
+
+                document.getElementById('total-records-badge').innerText = data.total_records + ' Total Data';
+
+                const tbody = document.getElementById('riwayat-games-table');
+                let tableHtml = '';
+
+                if (data.games.length > 0) {
+                    data.games.forEach(game => {
+                        const badgeClass    = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'badge-draw' : 'badge-winner';
+                        const badgeText     = (game.pemenang === 'Draw' || game.pemenang === 'Seri') ? 'Seri' : game.pemenang;
+                        const date          = new Date(game.created_at);
+                        const formattedDate = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                           + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                        tableHtml += `
+                            <tr>
+                                <td>#${game.id}</td>
+                                <td class="text-center"><strong>${game.skor_kiri}</strong></td>
+                                <td class="text-center"><strong>${game.skor_kanan}</strong></td>
+                                <td><span class="${badgeClass}">${badgeText}</span></td>
+                                <td>${game.durasi}s</td>
+                                <td>${formattedDate}</td>
+                            </tr>`;
+                    });
+                } else {
+                    tableHtml = '<tr><td colspan="6" class="text-center py-4">Belum ada data permainan</td></tr>';
+                }
+
+                if (tbody.innerHTML !== tableHtml) {
+                    tbody.innerHTML = tableHtml;
+                }
+            })
+            .catch(error => console.error('Gagal memperbarui riwayat:', error));
+    }
+
+    refreshRiwayat();
+    setInterval(refreshRiwayat, 3000);
+})();
+</script>
+
 <style>
 .bg-peach { background-color: var(--primary-peach) !important; }
 .border-peach { border-color: var(--primary-peach) !important; }
@@ -197,4 +256,4 @@ include '../includes/navbar.php';
 .badge { font-weight: 600; letter-spacing: 0.3px; }
 </style>
 
-<?php include '../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
